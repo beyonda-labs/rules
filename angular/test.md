@@ -7,6 +7,9 @@ Conventions to follow when writing tests.
 - **A test states a behaviour, not a detail.** What is asserted is what the consumer configures and what the consumer observes: rendered text, invoked callbacks, emitted values, resulting state.
 - **Never assert on presentation**: CSS class names, node counts, element order, inline styles or the shape of the markup. They change with every redesign and prove nothing about the component working.
 - **Query by role, `aria-*` or visible text**, never by CSS class. A query by class ties the suite to the stylesheet.
+- **Locate only what the test acts on or reads**: the button it clicks, the input it types into, the text it checks. A container is never located to check that it exists; what it contains is checked instead.
+- **No `data-testid`.** An element a test needs to reach is one a user reaches too, so when it has no role or accessible name, the template gets the missing `role` or `aria-label`, not a test hook.
+- **An interaction is a real event on the element** (`click()`, a `KeyboardEvent`), never a call to the handler. The click proves the template wires the element to the behaviour; complex logic behind it belongs in a model or a service with its own spec.
 - **Attributes are asserted only when they are the contract**: `aria-selected`, `aria-current`, `disabled`. Not the ones that merely happen to be there.
 - **A variant or state that only changes a class has no test.** If the consumer cannot observe it through text, an ARIA attribute or a callback, either give the template the ARIA attribute that names the state (`aria-expanded`, `aria-current`) and assert that, or leave it untested.
 - **One `it()` per behaviour**, not per assertion. Several `expect` in the same `it()` are right when they describe the same behaviour.
