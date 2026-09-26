@@ -14,6 +14,9 @@ anything; if a change touches several of them, all of them apply.
 | Write CSS — classes, variables, dark mode, anything touching Bootstrap            | [angular/styles.md](angular/styles.md)               |
 | Add or change a translation                                                       | [angular/i18n.md](angular/i18n.md)                   |
 | Work on a publishable component library — exports, packaging, module READMEs      | [angular/library.md](angular/library.md)             |
+| Work on a model library — a shared domain package, no framework, front and back   | [model-library/package.md](model-library/package.md) |
+| Write or change a class of a model library                                        | [model-library/model.md](model-library/model.md)     |
+| Write logic in a model library — validation, hydration, copies                    | [model-library/function-module.md](model-library/function-module.md) |
 | Commit or push anything, or write a change-log entry                              | [commits.md](commits.md)                             |
 
 ## How to use them
