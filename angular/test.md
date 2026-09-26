@@ -15,6 +15,8 @@ Conventions to follow when writing tests.
 - **One `it()` per behaviour**, not per assertion. Several `expect` in the same `it()` are right when they describe the same behaviour.
 - **The name of an `it()` says what happens**, in the third person and without `should`: `renders the items from the config`, `calls onItemClick with the clicked id`.
 - **Setup lives in `beforeEach` and in a `build<Thing>()` helper** that returns a config with sensible defaults and takes overrides. An `it()` starts from a ready fixture and never repeats the wiring.
+- **Generic helpers are shared, not rewritten.** Rendering (`renderComponent`, `settle`) and generic queries (`queryAll`, `textsOf`, `buttonByName`, `queryButton`) come from the repo's `testing/` module, outside `src/` so they never ship. A spec keeps locally only what belongs to its component: its `build<Thing>()` and the queries that depend on its structure.
+- **No per-spec browser mocks** for what `setup-jest.ts` already provides, such as `ResizeObserver`.
 - **Private methods and internal state are not tested**: they are reached through the behaviour that uses them.
 - **One spec per unit that has behaviour.** A component that only renders its config has one rendering test, not twenty.
 - **A fixed bug gets the test that would have caught it**, written as the behaviour that was wrong.
