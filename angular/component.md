@@ -25,6 +25,7 @@ Conventions to follow when creating or changing a component.
 - **Methods go in alphabetical order**, the public ones as a first group and the private ones after them.
 - **The template holds no logic**: it reads signals and computed, calls methods for the rest, and guards its content with `@if` when the data may not be there yet.
 - **Nothing is computed twice in the template**: what the class can resolve, it resolves.
+- **Attributes follow a fixed order**: structural directive, `#ref`, `id`, `class`, other static attributes, inputs (`[x]`, `[attr.*]`, `[class.*]`), two-way bindings, outputs; alphabetical within each group. Prettier enforces it with `prettier-plugin-organize-attributes`, so it is never ordered by hand.
 - **Labels and placeholders are translation keys**, resolved with the `translate` pipe and defaulted from the config prefix when the consumer does not give one.
 - **Styles live in the component's own `.css`**, and what several children share goes in one file next to them, imported through `styleUrls`.
 - **No comments in the code**: whatever needs explaining goes in the module's README.
