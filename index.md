@@ -45,7 +45,9 @@ another repo, it belongs here instead.
 ## Which rule is enforced by what
 
 Most of these rules are not kept by reading them. Where a tool can hold the rule, the tool is the source of
-truth and this file only points at it.
+truth and this file only points at it. The tools are configured once in
+[base-config](https://github.com/beyonda-labs/base-config) (`@beyonda-labs/base-config`) and every repo takes
+them from there through its `beyonda.config.json`.
 
 | Rule                                                    | Enforced by                        |
 | ------------------------------------------------------- | ---------------------------------- |
@@ -56,8 +58,9 @@ truth and this file only points at it.
 | `--bs-*` never read                                     | stylelint                          |
 | State written as `is-*` / `has-*`                       | stylelint                          |
 | No `!important`                                         | stylelint                          |
-| `.en.json` and `.es.json` in step, key case and depth   | `check-translations.js`            |
+| `.en.json` and `.es.json` in step, key case and depth   | `bey-check-translations`           |
 | Minimum coverage                                        | Jest thresholds                    |
+| Exact versions, no local link in a commit               | `bey-check-dependencies`           |
 | What a `public-api.ts` exports                          | prose — not automatable            |
 | What a test asserts and what it does not                | prose                              |
 | When a `--bey-<module>-*` variable is worth creating    | prose                              |
