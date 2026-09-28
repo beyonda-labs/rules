@@ -31,6 +31,7 @@ Bootstrap            base: reset, grid, utilities, components
 - **What several children of a module share goes in one file next to them**, imported through `styleUrls`. It is never duplicated and never imported from another module.
 - **Rules follow the template.** `:host` and its custom properties open the file; then one block per element in the order the template renders them; the states (`is-*`, `has-*`) and variants (`bey-<module>--*`) of an element come right after its base rule; media queries and `:host-context` close the file. Rules are never sorted alphabetically: the cascade depends on their order, and reading them next to the template does too.
 - **Inside a block, custom properties come first and declarations are alphabetical**, with a shorthand before its longhands. Stylelint enforces and fixes it (`order/order`, `order/properties-alphabetical-order`), so nobody has to remember a grouping.
+- **No comments in a module's CSS**: whatever needs explaining goes in its README. Only the token layer may label its groups with a comment that mirrors the token catalogue, and a `stylelint-disable` stays only with its reason when a rule cannot be met.
 
 ## Example
 
