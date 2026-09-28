@@ -13,6 +13,7 @@ Conventions to follow when creating or changing a service.
 - **Whatever does not need `this` is a plain function** outside the class, and constants go at the top of the file in `SCREAMING_SNAKE_CASE`.
 - **A service that transforms data returns a new value** and never mutates its argument.
 - **No callbacks as properties**: what a component needs to trigger is a specific method on the service.
+- **An error reaches the user in the error modal, never in a toast**, whether a service or a component reports it. The library's HTTP service opens that modal with the server's reason by default; `handleError` is only for showing a different modal, and a toast only confirms what went right (`successToast`).
 - **No comments in the code**: whatever needs explaining goes in the module's README.
 
 ## Example
