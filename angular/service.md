@@ -7,7 +7,7 @@ Conventions to follow when creating or changing a service.
 - **One service per responsibility**, named `<Thing>Service` in `<thing>.service.ts`, inside a `services/` folder next to what it serves.
 - **`@Injectable({ providedIn: 'root' })` by default**. A bare `@Injectable()` only when the service must hold per-instance state and is listed in a component's `providers`.
 - **Dependencies with `inject()`**, in `private readonly` fields at the top of the class. Never through constructor parameters; a service with no state has no constructor at all.
-- **Order inside the class**: injected dependencies, private state and attributes, public state and attributes, methods. One blank line between blocks and alphabetical order inside each of them.
+- **Order inside the class**: injected dependencies, private state and attributes, public state and attributes, the constructor when there is one, methods. One blank line between blocks and alphabetical order inside each of them. `eslint.class-order` enforces it and fixes it on save.
 - **State lives in signals**: the writable one is private and prefixed with `_`, and what the outside reads is its `asReadonly()` or a `computed`. Nothing outside the service writes state.
 - **Methods go in alphabetical order**, the public ones as a first group and the private ones after them.
 - **Whatever does not need `this` is a plain function** outside the class, and constants go at the top of the file in `SCREAMING_SNAKE_CASE`.

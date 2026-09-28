@@ -10,6 +10,7 @@ anything; if a change touches several of them, all of them apply.
 | Write or change an Angular component — folder layout, config input, template      | [angular/component.md](angular/component.md)         |
 | Write or change a model class — the data holders paired with `<Name>Parameters`   | [angular/class-model.md](angular/class-model.md)     |
 | Write or change a service — injectable, state, HTTP calls, data transformation    | [angular/service.md](angular/service.md)             |
+| Write stateless logic in an Angular repo — a label key, a size, a tree search     | [angular/function-module.md](angular/function-module.md) |
 | Write or change a test                                                            | [angular/test.md](angular/test.md)                   |
 | Write CSS — classes, variables, dark mode, anything touching Bootstrap            | [angular/styles.md](angular/styles.md)               |
 | Add or change a translation                                                       | [angular/i18n.md](angular/i18n.md)                   |
@@ -54,6 +55,9 @@ them from there through its `beyonda.config.json`.
 | Selector and class prefix                               | ESLint + stylelint                 |
 | Import order, quotes, formatting                        | ESLint + Prettier, via lint-staged |
 | `OnPush` on every component                             | ESLint                             |
+| Signal inputs, outputs and queries; `inject()`           | ESLint                             |
+| Member order of components, directives and services     | ESLint (`eslint.class-order`)      |
+| Declaration order; contract-only model files            | ESLint (`eslint.sort-declarations`, `eslint.model-files`) |
 | No literal design value outside the token layer         | stylelint                          |
 | `--bs-*` never read                                     | stylelint                          |
 | State written as `is-*` / `has-*`                       | stylelint                          |
