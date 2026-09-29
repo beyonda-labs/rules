@@ -11,6 +11,7 @@ anything; if a change touches several of them, all of them apply.
 | Write or change a model class — the data holders paired with `<Name>Parameters`   | [angular/class-model.md](angular/class-model.md)     |
 | Write or change a service — injectable, state, HTTP calls, data transformation    | [angular/service.md](angular/service.md)             |
 | Write stateless logic in an Angular repo — a label key, a size, a tree search     | [angular/function-module.md](angular/function-module.md) |
+| Build a page of an app on `bey-page` — folder, page config, services by kind     | [angular/page.md](angular/page.md)                   |
 | Write or change a test                                                            | [angular/test.md](angular/test.md)                   |
 | Write CSS — classes, variables, dark mode, anything touching Bootstrap            | [angular/styles.md](angular/styles.md)               |
 | Add or change a translation                                                       | [angular/i18n.md](angular/i18n.md)                   |

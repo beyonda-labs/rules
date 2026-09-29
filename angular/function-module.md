@@ -1,18 +1,21 @@
 # Function module rules
 
 Conventions for the stateless logic of an Angular app or library: resolving a label key, formatting a size,
-searching a tree, building the cells of a row from a model.
+searching a tree, reordering the items of a document.
 
 ## Rules
 
 - **Plain exported functions, never a class**, when the logic holds no state and injects nothing. Logic that needs
-  `inject()` belongs in a service.
+  `inject()` belongs in a service, and so do the form and table builders of a page, which are `-form` and `-table`
+  services (see [service.md](service.md)).
 - **The file is named after what its functions do, without a technical suffix**: `tree-node-search.ts`,
   `file-size.ts`, `form-rule-resolution.ts`. No `.util.ts` nor `.helper.ts`; only the Angular artefacts keep
   theirs (`.component.ts`, `.service.ts`, `.model.ts`…).
-- **It lives next to what it works on**: in the `models/` folder of the module when it works on its models, in the
-  module's folder when it serves the component. What several modules of a library share goes in
-  `internal/<topic>/`.
+- **It lives in a `functions/` folder at the level of what uses it**: `<module>/functions/` in a library module or
+  a page, `<component>/functions/` when a single component of a module uses it, `shared/functions/` when several
+  pages of an app use it, and `internal/<topic>/` when several modules of a library do. `models/` holds contracts
+  only and `services/` only injectables. The only function modules outside `functions/` are the config builders a
+  screen starts from, such as `<page>-page-config.ts`, next to its component.
 - **Types and constants it needs go in a model file**, never in the function module: contracts and definitions
   stay in `*.model.ts`.
 - **Functions are grouped by the question they answer**. A module that answers two questions is split.

@@ -21,7 +21,7 @@ Conventions to follow when creating or changing a component.
 - **A method instead of a `computed()` only when the value reads something that is not a signal** — form control validity, a DOM measurement — since a `computed()` would not recompute.
 - **Dependencies are injected with `inject()`**, never through constructor parameters.
 - **Subscriptions are cleaned up with `takeUntilDestroyed()`**, in the field initialiser or the constructor. No `destroy$` subject, no `ngOnDestroy` written just to unsubscribe.
-- **Order inside the class**: inputs, outputs, public signals and computed, private state, injected dependencies, constructor, lifecycle hooks in the order Angular runs them, methods. One blank line between blocks. `eslint.class-order` and `sort-lifecycle-methods` enforce it; the first fixes it on save.
+- **Order inside the class**: injected dependencies, inputs, outputs, public signals and computed, private state, constructor, lifecycle hooks in the order Angular runs them, methods. One blank line between blocks. `eslint.class-order` and `sort-lifecycle-methods` enforce it; the first fixes it on save.
 - **Methods go in alphabetical order**, the public ones as a first group and the private ones after them.
 - **The template holds no logic**: it reads signals and computed, calls methods for the rest, and guards its content with `@if` when the data may not be there yet.
 - **Nothing is computed twice in the template**: what the class can resolve, it resolves.
@@ -42,13 +42,13 @@ Conventions to follow when creating or changing a component.
   templateUrl: './field-text.component.html'
 })
 export class FormTextFieldComponent {
+  private readonly formService = inject(FormService);
+
   readonly field = input.required<FormTextField>();
 
   readonly control = computed(() => this.formService.getFieldControl(this.field()));
   readonly hint = signal('');
   readonly placeholder = computed(() => this.field().placeholder ?? `${this.field().key}.placeholder`);
-
-  private readonly formService = inject(FormService);
 
   constructor() {
     toObservable(this.control)
