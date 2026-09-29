@@ -76,6 +76,9 @@ them from there through its `beyonda.config.json`.
 | `.en.json` and `.es.json` in step, key case and depth   | `bey-check-translations`           |
 | Minimum coverage                                        | Jest thresholds                    |
 | Exact versions, no local link in a commit               | `bey-check-dependencies`           |
+| Express: no default export, `node:` imports             | ESLint (`eslint.express`)          |
+| Express: `process.env` only in `src/environment.ts`, `console` only in `src/index.ts` | ESLint (`eslint.express`) |
+| Express app: the driver and umzug only through the library | ESLint (`eslint.express`)       |
 | What a `public-api.ts` exports                          | prose — not automatable            |
 | What a test asserts and what it does not                | prose                              |
 | When a `--bey-<module>-*` variable is worth creating    | prose                              |
