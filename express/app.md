@@ -12,9 +12,9 @@ product and the demo of the Express library.
   applies the defaults and returns a typed `Environment`. `process.env` appears nowhere else, and `.env.example`
   lists every variable it reads.
 - **`src/app.ts` only wires**: `createApp(dependencies)` builds what several resources share (the app config, the
-  stores of the entities they all read), calls the module of every resource and hands them to the library's
-  `beyInitBaseApp`, which adds JSON, CORS, the authentication routes, the modules in order and the error handler
-  last. No route, handler or query of its own.
+  access guards, the stores of the entities they all read), calls the module of every resource and hands them to
+  the library's `beyInitBaseApp`, which adds JSON, CORS, the authentication routes, the modules in order and the
+  error handler last. No route, handler or query of its own.
 - **Configuration is built by functions, never at import time**: `src/app-config.ts` exports
   `buildAppConfig(environment)` and `buildEntityConfigs()`, and an entity the library manages has
   `<resource>-entity-config.ts` exporting `build<Resource>EntityConfig()` next to the module of its resource, as a
@@ -60,11 +60,13 @@ start().catch(error => {
 // src/app.ts
 export function createApp({ database, environment }: AppDependencies): Application {
     const appConfig = buildAppConfig(environment);
+    const accessGuards = beyCreateAccessGuards(appConfig.authentication);
     const templateStore = beyCreateEntityStore<Template>(database, buildTemplatesEntityConfig());
+    const shared = { accessGuards, appConfig, database, templateStore };
 
     return beyInitBaseApp(appConfig, [
-        ['/templates', createTemplatesModule({ appConfig, database, templateStore })],
-        ['/template-definitions', createTemplateDefinitionsModule({ appConfig, database, templateStore })]
+        ['/templates', createTemplatesModule(shared)],
+        ['/template-definitions', createTemplateDefinitionsModule(shared)]
     ]);
 }
 ```

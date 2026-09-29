@@ -12,9 +12,10 @@ Conventions for the routes of an Express app or library, on Express 5.
 - **Errors are thrown**, `throw new BeyNotFoundError(...)`, in the handler or anywhere below it. Express 5 hands a
   rejected promise to the error handler, so there is no `try`/`catch`, no `next(error)` and no
   `response.status(4xx).json(...)` of its own: [error.md](error.md) shapes every failure.
-- **Every route declares its permission** with `beyRequirePermission(<Resource>Permission.<Action>)`, which
-  authenticates too. The permission is the one named after the action (`ConvertToBlock` for `/convert-to-block`);
-  a route open to any signed-in user uses `beyRequireAuth()` and says so.
+- **Every route declares its permission** with `requirePermission(<Resource>Permission.<Action>)`, one of the access
+  guards the app builds once with `beyCreateAccessGuards(authentication)` and hands to every router as a
+  dependency; it authenticates too. The permission is the one named after the action (`ConvertToBlock` for
+  `/convert-to-block`); a route open to any signed-in user uses `requireAuth()` from the same guards and says so.
 - **The body is parsed, never cast**: `beyParseBody(request, SCHEMA)` validates it against a schema of the library
   and returns it typed, or throws the validation error. Neither `request.body as X` nor
   `request.body['x'] as string` appears.
@@ -33,20 +34,20 @@ Conventions for the routes of an Express app or library, on Express 5.
 ## Example
 
 ```ts
-export function createTemplatesRouter({ templateService }: TemplatesRouterDependencies): Router {
+export function createTemplatesRouter({ requirePermission, templateService }: TemplatesRouterDependencies): Router {
     const router = Router();
 
-    router.get('/blocks', beyRequirePermission(TemplatePermission.ReadDefinition), async (_request, response) => {
+    router.get('/blocks', requirePermission(TemplatePermission.ReadDefinition), async (_request, response) => {
         response.json(await templateService.findBlocks());
     });
 
-    router.post('/:id/status', beyRequirePermission(TemplatePermission.ChangeStatus), async (request, response) => {
+    router.post('/:id/status', requirePermission(TemplatePermission.ChangeStatus), async (request, response) => {
         const { status } = beyParseBody(request, CHANGE_STATUS_SCHEMA);
 
         response.json(await templateService.changeStatus(request.params.id, status));
     });
 
-    router.post('/:id/duplicate', beyRequirePermission(TemplatePermission.Duplicate), async (request, response) => {
+    router.post('/:id/duplicate', requirePermission(TemplatePermission.Duplicate), async (request, response) => {
         const { name } = beyParseBody(request, DUPLICATE_SCHEMA);
 
         response.status(201).json(await templateService.duplicate(request.params.id, name));

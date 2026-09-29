@@ -53,12 +53,13 @@ src/
 
 ```ts
 // templates.module.ts
-export function createTemplatesModule({ appConfig, database, templateStore }: TemplatesModuleDependencies): Router {
+export function createTemplatesModule(dependencies: TemplatesModuleDependencies): Router {
+    const { accessGuards, appConfig, database, templateStore } = dependencies;
     const definitionStore = createTemplateDefinitionStore(database);
     const templateService = createTemplateService({ definitionStore, templateStore });
 
     return Router().use(
-        createTemplatesRouter({ templateService }),
+        createTemplatesRouter({ requirePermission: accessGuards.requirePermission, templateService }),
         beyCreateBaseEntityModule({
             appConfig,
             store: templateStore,
