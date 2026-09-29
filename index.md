@@ -12,13 +12,23 @@ anything; if a change touches several of them, all of them apply.
 | Write or change a service — injectable, state, HTTP calls, data transformation    | [angular/service.md](angular/service.md)             |
 | Write stateless logic in an Angular repo — a label key, a size, a tree search     | [angular/function-module.md](angular/function-module.md) |
 | Build a page of an app on `bey-page` — folder, page config, services by kind     | [angular/page.md](angular/page.md)                   |
-| Write or change a test                                                            | [angular/test.md](angular/test.md)                   |
+| Write or change a test in an Angular repo                                         | [angular/test.md](angular/test.md)                   |
 | Write CSS — classes, variables, dark mode, anything touching Bootstrap            | [angular/styles.md](angular/styles.md)               |
 | Add or change a translation                                                       | [angular/i18n.md](angular/i18n.md)                   |
 | Work on a publishable component library — exports, packaging, module READMEs      | [angular/library.md](angular/library.md)             |
 | Work on a model library — a shared domain package, no framework, front and back   | [model-library/package.md](model-library/package.md) |
 | Write or change a class of a model library                                        | [model-library/model.md](model-library/model.md)     |
 | Write logic in a model library — validation, hydration, copies                    | [model-library/function-module.md](model-library/function-module.md) |
+| Start or wire an Express app — `index.ts`, `app.ts`, environment, configuration   | [express/app.md](express/app.md)                     |
+| Add or change a resource of an Express app — folder, module, entity config        | [express/resource.md](express/resource.md)           |
+| Write or change a route of an Express repo                                        | [express/router.md](express/router.md)               |
+| Write or change a service of an Express repo                                      | [express/service.md](express/service.md)             |
+| Read or write the database — a store, a query, a transaction                      | [express/store.md](express/store.md)                 |
+| Change the schema or the stored data of a database                                | [express/migration.md](express/migration.md)         |
+| Throw an error in an Express repo, or change what the front receives for one      | [express/error.md](express/error.md)                 |
+| Write stateless logic in an Express repo                                          | [express/function-module.md](express/function-module.md) |
+| Write or change a test in an Express repo                                         | [express/test.md](express/test.md)                   |
+| Work on the publishable Express library — exports, packaging, testing entry point | [express/library.md](express/library.md)             |
 | Commit or push anything, or write a change-log entry                              | [commits.md](commits.md)                             |
 
 ## How to use them
