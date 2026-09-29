@@ -31,6 +31,13 @@ table, forms, categories and trash.
   `models/<entity>.model.ts`.
 - **Specs**: the component spec renders the page with `provideBeyTesting()` and checks the wiring through the DOM
   (rows, actions, forms, requests); the page config and every service have their own spec for what they return.
+- **A workspace page that is not a `bey-page`** (an editor) keeps the same split. Its state lives in
+  `<page>.service.ts`, a bare `@Injectable()` listed in the component's `providers` so every open page has its own:
+  signals written only through its methods, and what derives from them as `computed`. What the user does lives in
+  `<page>-actions.service.ts`, listed there too, working on that state, the `-http` and `-form` services and the
+  modals. The component exposes the state to its template and hands every event to the actions service; its
+  layout and the options it offers are built in `<page>-config.ts`, and its panels are child components with inputs
+  and outputs.
 
 ## Example
 
