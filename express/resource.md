@@ -54,17 +54,19 @@ src/
 ```ts
 // templates.module.ts
 export function createTemplatesModule(dependencies: TemplatesModuleDependencies): Router {
-    const { accessGuards, appConfig, database, templateStore } = dependencies;
+    const { accessGuards, appConfig, database, templateStore, userStore } = dependencies;
     const definitionStore = createTemplateDefinitionStore(database);
     const templateService = createTemplateService({ definitionStore, templateStore });
 
     return Router().use(
         createTemplatesRouter({ requirePermission: accessGuards.requirePermission, templateService }),
         beyCreateBaseEntityModule({
-            appConfig,
-            store: templateStore,
+            authentication: appConfig.authentication,
+            entityConfig: buildTemplatesEntityConfig(),
             filterItemActions: filterTemplateItemActions,
-            onDeleted: templates => templateService.deleteDefinitions(templates)
+            onDeleted: templates => templateService.deleteDefinitions(templates),
+            store: templateStore,
+            userStore
         })
     );
 }

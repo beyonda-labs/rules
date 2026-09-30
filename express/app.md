@@ -12,8 +12,9 @@ product and the demo of the Express library.
   applies the defaults and returns a typed `Environment`. `process.env` appears nowhere else, and `.env.example`
   lists every variable it reads.
 - **`src/app.ts` only wires**: `createApp(dependencies)` builds what several resources share (the app config, the
-  access guards, the stores of the entities they all read), calls the module of every resource and hands them to
-  the library's `beyInitBaseApp`, which adds JSON, CORS, the authentication routes, the modules in order and the
+  access guards, the user store, the stores of the entities they all read), calls the module of every resource and
+  hands them to the library's `beyInitBaseApp({ appConfig, routes, userStore, logger })`, which adds CORS for
+  `appConfig.corsOrigin`, JSON up to `appConfig.bodyLimit`, the authentication routes, the modules in order and the
   error handler last. No route, handler or query of its own.
 - **Configuration is built by functions, never at import time**: `src/app-config.ts` exports
   `buildAppConfig(environment)` and `buildEntityConfigs()`, and an entity the library manages has
@@ -48,8 +49,9 @@ async function start(): Promise<void> {
         entities: buildEntityConfigs(),
         migrations: MIGRATIONS
     });
+    beySeedAccounts(database, buildAppConfig(environment).authentication.persistence, console.log);
     await seedSystemVariables(database);
-    createApp({ database, environment }).listen(environment.port);
+    createApp({ database, environment, logError: error => console.error(error) }).listen(environment.port);
 }
 
 start().catch(error => {
@@ -58,15 +60,21 @@ start().catch(error => {
 });
 
 // src/app.ts
-export function createApp({ database, environment }: AppDependencies): Application {
+export function createApp({ database, environment, logError }: AppDependencies): Application {
     const appConfig = buildAppConfig(environment);
     const accessGuards = beyCreateAccessGuards(appConfig.authentication);
     const templateStore = beyCreateEntityStore<Template>(database, buildTemplatesEntityConfig());
-    const shared = { accessGuards, appConfig, database, templateStore };
+    const userStore = beyCreateUserStore(database);
+    const shared = { accessGuards, appConfig, database, templateStore, userStore };
 
-    return beyInitBaseApp(appConfig, [
-        ['/templates', createTemplatesModule(shared)],
-        ['/template-definitions', createTemplateDefinitionsModule(shared)]
-    ]);
+    return beyInitBaseApp({
+        appConfig,
+        logger: logError,
+        routes: [
+            ['/templates', createTemplatesModule(shared)],
+            ['/template-definitions', createTemplateDefinitionsModule(shared)]
+        ],
+        userStore
+    });
 }
 ```
