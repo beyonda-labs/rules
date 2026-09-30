@@ -8,9 +8,9 @@ product and the demo of the Express library.
 - **`src/index.ts` only starts the process**: it reads the environment, opens the database, runs the migrations,
   seeds the reference data and listens. When a step fails the process ends with a non-zero code; it never listens
   on an app that did not finish starting.
-- **The environment is read once**, in `src/environment.ts`: `readEnvironment(process.env)` checks every variable,
-  applies the defaults and returns a typed `Environment`. `process.env` appears nowhere else, and `.env.example`
-  lists every variable it reads.
+- **The environment is read once**, in `src/environment.ts`: `readEnvironment(variables = process.env)` checks every
+  variable, applies the defaults and returns a typed `Environment`; a spec passes its own variables. `process.env`
+  appears nowhere else, and `.env.example` lists every variable it reads.
 - **`src/app.ts` only wires**: `createApp(dependencies)` builds what several resources share (the app config, the
   access guards, the user store, the stores of the entities they all read), calls the module of every resource and
   hands them to the library's `beyInitBaseApp({ appConfig, routes, userStore, logger })`, which adds CORS for
@@ -41,7 +41,7 @@ product and the demo of the Express library.
 ```ts
 // src/index.ts
 async function start(): Promise<void> {
-    const environment = readEnvironment(process.env);
+    const environment = readEnvironment();
     const database = beyOpenDatabase(environment.databasePath);
 
     await beyRunMigrations(database, {
