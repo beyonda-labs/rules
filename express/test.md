@@ -23,8 +23,10 @@ about any test.
 - **No `jest.mock` of the modules of the repo**: a factory takes its dependencies, so the spec passes the one it
   wants.
 - **Generic helpers come from `<package>/testing`**: the test server, the tokens, the test database and the test
-  app config. A spec keeps locally only its `build<Thing>()` fixtures, and a fixture several specs of an app share
-  lives in `src/testing/`. A helper the library lacks is added there, never rewritten in a spec.
+  authentication config. A spec keeps locally only its `build<Thing>()` fixtures, and a fixture several specs
+  share lives in `src/testing/` in an app and in `src/lib/internal/testing/` in the library
+  ([library.md](library.md)). A generic helper the library lacks is added to `<package>/testing`, never rewritten
+  in a spec.
 - **Every migration, store, service, function module and router has its spec**; `index.ts` and `app.ts` are
   covered by the router specs that start the app.
 - **Coverage thresholds** sit just under the current numbers, as in every repo.

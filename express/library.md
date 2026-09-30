@@ -29,9 +29,10 @@ services, stores, migrations, errors and tests.
 - **The library never reads `process.env`**: it receives values (`jwtSecret`), never the name of a variable to read
   (`jwtSecretEnv`). The app reads its environment, as [app.md](app.md) says.
 - **Test support is the `<package>/testing` entry point**, with sources under `testing/src/`: the test server, the
-  tokens, the in-memory database with its migrations and the fakes of what leaves the process. It imports the
-  library by its package name, nothing in the library imports it, and the specs of the library use it too, so no
-  `*.test-helpers.ts` sits next to the code.
+  tokens, the in-memory database with its migrations and the test authentication config. It imports the library
+  by its package name, nothing in the library imports it, and the specs of the library use it too, so no
+  `*.test-helpers.ts` sits next to the code. A fixture several specs of the library share and no consumer needs
+  lives in `src/lib/internal/testing/`, which the coverage leaves out.
 - **`express` is a peer dependency**, as Angular is in the component library, so the app and the library share
   one copy and one set of types. The other runtime dependencies are few and justified (the SQLite driver, JWT,
   hashing, umzug), and every version is exact.
