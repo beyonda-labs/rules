@@ -37,7 +37,8 @@ services, stores, migrations, errors and tests.
   one copy and one set of types. The other runtime dependencies are few and justified (the SQLite driver, JWT,
   hashing, umzug), and every version is exact.
 - **Built as CommonJS and ES modules with types** (`tsup`: `cjs`, `esm`, `dts`), with one entry per public entry
-  point (`.`, `./testing`) listed in `exports`, and `"sideEffects": false`.
+  point (`.`, `./testing`) listed in `exports`, and `"sideEffects": false`. A secondary entry point is also listed
+  in `typesVersions`, because an app on `moduleResolution: node` does not read `exports` and finds no types.
 - **Published to the private registry** through `publishConfig.registry`, with `.npmrc` sending the scope there;
   every push to develop publishes a `<version>-develop.<build>.<sha>` snapshot.
 - **Every module has a `docs/<module>-readme.md`** with the shape the component library uses: one paragraph on what
@@ -62,6 +63,7 @@ export type { AppErrorOptions as BeyAppErrorOptions } from './models/app-error.m
         ".": { "types": "./dist/index.d.ts", "import": "./dist/index.mjs", "require": "./dist/index.js" },
         "./testing": { "types": "./dist/testing.d.ts", "import": "./dist/testing.mjs", "require": "./dist/testing.js" }
     },
+    "typesVersions": { "*": { "testing": ["./dist/testing.d.ts"] } },
     "sideEffects": false,
     "peerDependencies": { "express": "5.2.1" }
 }
