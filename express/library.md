@@ -8,8 +8,13 @@ services, stores, migrations, errors and tests.
 - **Generic, never tied to a product**: nothing of the domain of a product and no dependency on a product
   package. A module only one product uses, such as the PDF generation of document builder, lives in that product.
 - **Every module has its own `public-api.ts`** in `src/lib/modules/<module>/`, and the root `src/public-api.ts`
-  only re-exports those files. A consumer never imports a deep path, and a module imports another only through its
-  `public-api.ts`; what two modules share goes to `src/lib/internal/<topic>/`. No import cycle between modules.
+  only re-exports those files. A consumer never imports a deep path. Inside the library a module imports the file
+  of another one directly, under its own unprefixed name, never through a `public-api.ts`; what several modules
+  share and no consumer needs goes to `src/lib/internal/<topic>/`.
+- **The modules form no import cycle**: each one depends only on the ones below it (`http-errors`, `validation`,
+  `persistence`, `user-store`, `authentication`, `base-entity`, `attachments`, `base-app`). A module takes the part
+  of a config it reads as a structural context (`AuthenticationContext`), never the app config of the module that
+  composes it.
 - **Everything public is renamed with the library prefix** on the way out, as in the component library: types and
   classes start with `Bey` (`BeyAppConfig`, `BeyNotFoundError`), functions with `bey` (`beyCreateAuthModule`,
   `beyRequirePermission`). Without exception, so a consumer never has to alias.
