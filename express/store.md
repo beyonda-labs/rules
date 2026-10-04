@@ -21,7 +21,9 @@ today; these rules keep the interface of a store free of the engine.
   caller reads `row['name'] as string`.
 - **A read names what it returns**: `findById`, `findByIds`, `findAll`, `exists`, `count<Thing>`. A read that needs
   every row is `findAll`, never a search with the maximum page size.
-- **A write that touches several rows or tables is one transaction** (`database.transaction`).
+- **A write that touches several rows or tables is one transaction** (`database.transaction`) inside the store.
+  When a service writes through several stores, it wraps them in `store.transaction(work)`, as
+  [service.md](service.md) says, and the transaction of each store joins it.
 - **Values are always bound** with `?` placeholders; a list is bound with one placeholder per value, never joined
   into the SQL.
 - **Only migrations change the schema**, as [migration.md](migration.md) describes: no `CREATE`, `ALTER` nor
