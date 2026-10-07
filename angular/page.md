@@ -27,6 +27,12 @@ table, forms, categories and trash.
 - **A standard action is never rewritten to change its message**: to warn about something first (a block in use, a
   file in use), the actions service builds the confirmation of `beyPageStandardAction(key, { confirmation })`,
   and the page keeps the standard request, toast and reload.
+- **The columns of the table** are declared in the page config. A column showing a field the backend stores says
+  `isSortable`, with `sortField` when that field is not its key; one built from data the backend adds to each row
+  (a count, the names of its users) or from a list (tags) never does, since the list cannot be sorted by it. The
+  column that names the row says `isHideable: false`, and a column worth having but not at first sight says
+  `isVisible: false`. The table gets a `storageKey` named as the page, so the columns the user hides are
+  remembered, and the widths are shares that fit a 1440 px window without cutting a badge.
 - **The types and constants of the page** (the stored row, badge variants, tooltip keys) live in
   `models/<entity>.model.ts`.
 - **Specs**: the component spec renders the page with `provideBeyTesting()` and checks the wiring through the DOM
