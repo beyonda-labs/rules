@@ -24,9 +24,14 @@ table, forms, categories and trash.
 - **A custom action that edits through a form** opens it with `handle.openForm(config, submit)`: the form service
   builds the config without an `onSubmit`, and the actions service, which receives the handle as a parameter,
   passes the request. The page closes the modal and reloads once the request answers.
-- **A standard action is never rewritten to change its message**: to warn about something first (a block in use, a
-  file in use), the actions service builds the confirmation of `beyPageStandardAction(key, { confirmation })`,
-  and the page keeps the standard request, toast and reload.
+- **A standard action is never rewritten to change its message**: to warn about something first (a featured
+  product, a published one), the actions service builds the confirmation of
+  `beyPageStandardAction(key, { confirmation })`, and the page keeps the standard request, toast and reload.
+- **A row other rows use warns through its usages, never through a confirmation of its own**: the page config
+  declares `usagesConfig: new BeyPageUsagesConfig({ suffixes })`, kept in `models/<entity>.model.ts` with the base
+  URL of the page, and the page asks the backend before `delete` and `delete-trash-item`. A form or a cell that
+  names the users of a row takes them from `BeyPageUsagesService` (`listUsers`, `describeRowUsers`), never from a
+  request or a description of its own.
 - **The columns of the table** are declared in the page config. A column showing a field the backend stores says
   `isSortable`, with `sortField` when that field is not its key; one built from data the backend adds to each row
   (a count, the names of its users) or from a list (tags) never does, since the list cannot be sorted by it. The
@@ -69,8 +74,6 @@ export class TemplatesComponent {
   private readonly templateTableService = inject(TemplateTableService);
 
   readonly templatesPageConfig = buildTemplatesPageConfig({
-    deleteConfirmation: (templates, confirmation) =>
-      this.templateActionsService.deleteConfirmation(templates, confirmation),
     formConfig: this.templateFormService.buildTemplatesFormConfig(),
     loadRow: template => this.templateTableService.loadRow(template),
     onChangeStatus: template => this.templateActionsService.changeStatus(template, this.page),
@@ -82,7 +85,6 @@ export class TemplatesComponent {
 
 // templates-page-config.ts
 export function buildTemplatesPageConfig({
-  deleteConfirmation,
   formConfig,
   loadRow,
   onChangeStatus,
@@ -90,7 +92,8 @@ export function buildTemplatesPageConfig({
 }: TemplatesPageConfigOptions): BeyPageConfig<TemplateFormValue, Template> {
   return new BeyPageConfig<TemplateFormValue, Template>({
     prefix: PREFIX,
-    baseUrl: '/templates',
+    baseUrl: TEMPLATES_BASE_URL,
+    usagesConfig: TEMPLATE_USAGES_CONFIG,
     headerConfig: new BeyPageHeaderConfig({
       title: `${PREFIX}.title`,
       actions: [
@@ -102,7 +105,7 @@ export function buildTemplatesPageConfig({
           zone: BeyPageActionZone.Menu,
           handler: ([template]) => onChangeStatus(template)
         }),
-        beyPageStandardAction(BeyPageStandardAction.Delete, { confirmation: deleteConfirmation })
+        beyPageStandardAction(BeyPageStandardAction.Delete)
       ]
     }),
     tableConfig: new BeyPageTableConfig({ columns: COLUMNS, loadRow }),
@@ -110,6 +113,12 @@ export function buildTemplatesPageConfig({
     onReady
   });
 }
+
+// models/template.model.ts
+export const TEMPLATES_BASE_URL = '/templates';
+export const TEMPLATE_USAGES_CONFIG = new BeyPageUsagesConfig({
+  suffixes: { [TemplateBlockType.ContentBlock]: 'document-builder.templates.usages.block' }
+});
 
 // services/template-actions.service.ts
 changeStatus(template: Template, page?: BeyPageHandle<Template>): void {

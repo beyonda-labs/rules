@@ -14,6 +14,10 @@ stores, models and functions behind them.
 - **A resource extends an entity of the library** by mounting its own router before the library's on the same
   path: the module returns `Router().use(resourceRouter, beyCreateBaseEntityModule(...))`, so a custom route such
   as `/blocks` is matched before `/:id`. A router of the library is never changed after it is built.
+- **A resource other rows point at answers what uses each row** through the `findUsages` hook of the library
+  entity: its service answers `findUsers(ids)`, every user named as `{ id, name, resource, kind? }`, and the
+  library gives every row its `usageCount` and `usedBy` and answers `GET /usages`. The resource writes no usages
+  route and adds no usage field through `decorateResults`.
 - **Dependencies travel as one object**, typed by a `<Thing>Dependencies` interface in `models/`: a module, a
   router, a service or a store takes `{ templateService, definitionStore }`, never loose parameters. Adding one
   does not touch the order of the others, and `max-params` is never the reason to merge two of them.
