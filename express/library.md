@@ -11,7 +11,7 @@ services, stores, migrations, errors and tests.
   only re-exports those files. A consumer never imports a deep path. Inside the library a module imports the file
   of another one directly, under its own unprefixed name, never through a `public-api.ts`; what several modules
   share and no consumer needs goes to `src/lib/internal/<topic>/`.
-- **The modules form no import cycle**: each one depends only on the ones below it (`http-errors`, `validation`,
+- **The modules form no import cycle**: each one depends only on the ones below it (`logger`, `http-errors`, `rate-limiter`, `validation`,
   `persistence`, `user-store`, `authentication`, `base-entity`, `attachments`, `base-app`). A module takes the part
   of a config it reads as a structural context (`AuthenticationContext`), never the app config of the module that
   composes it.
