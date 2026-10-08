@@ -30,6 +30,8 @@ anything; if a change touches several of them, all of them apply.
 | Write or change a test in an Express repo                                         | [express/test.md](express/test.md)                   |
 | Work on the publishable Express library — exports, packaging, testing entry point | [express/library.md](express/library.md)             |
 | Commit or push anything, or write a change-log entry                              | [commits.md](commits.md)                             |
+| Make an app listen on a port, in development or deployed                          | [ports.md](ports.md)                                 |
+| Package or deploy a product — its image, its compose, the front it serves        | [deployment.md](deployment.md)                       |
 
 ## How to use them
 
