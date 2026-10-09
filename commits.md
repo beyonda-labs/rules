@@ -12,6 +12,7 @@ Rules every commit follows, in every repo.
 - **Never commit on `main`.** `develop` is the base for everything else.
 - **`feature/<name>` and `fix/<name>`** branch off `develop` and merge back into it; **`release/x.y.z`** merges into `main` and `develop`; **`hotfix/<name>`** branches off `main`.
 - **No pull requests**: the merge is done directly.
+- **A change that spans the front and the service of a product lands front first.** The feature branch of the front is pushed, so Jenkins publishes its `<version>-feature-<name>.<build>.<sha>` snapshot, and the feature branch of the service pins it, so the service is tried with the front it will serve. Before the service goes to `develop`, the front merges into `develop`, its remote branch is deleted and the service pins that `develop` snapshot; only then does the service merge. `develop` of the service never serves a front that exists only on a feature branch.
 
 ## Message
 
