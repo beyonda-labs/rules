@@ -16,8 +16,9 @@ front, that runs on any machine without being configured for it.
   (`proxy.conf.json`, stripping the prefix), so the app makes the same calls in both.
 - **The front builds for a Content Security Policy**: the service sends the front policy of express-components as a
   header, so nothing in `index.html` may be inline. The production build sets `inlineCritical: false`, whose stylesheet
-  loader is an inline `onload` the policy refuses. A front that needs another source widens
-  `frontContentSecurityPolicy` in `buildAppConfig`, and never with `'unsafe-inline'` in `script-src`.
+  loader is an inline `onload` the policy refuses; `bey-config check` warns when it is missing and stops a release. A
+  front that needs another source widens `frontContentSecurityPolicy` in `buildAppConfig`, and never with
+  `'unsafe-inline'` in `script-src`.
 - **The image carries its defaults and nothing of a machine**: the paths of the data, the backups, the logs and the
   secrets point under `/data`, a volume, and the process runs as `node`. A missing JWT secret is generated once and
   kept in `SECRETS_PATH`; without admin credentials the first start creates the superadmin and prints them to the
@@ -37,7 +38,8 @@ front, that runs on any machine without being configured for it.
 - **An image moves as a file**: `docker save <image> -o <image>.tar` on the machine that built it, `docker load` and
   `docker compose up -d` next to `compose.yaml` on the target.
 - **Behind a proxy, the service trusts it**: when Caddy terminates HTTPS in front of the image, `TRUST_PROXY` names
-  it, so the logs and the rate limits see each client by its own address. HSTS is the proxy's: Caddy adds
+  it, so the logs and the rate limits see each client by its own address, and the refresh cookie goes out `Secure`,
+  since express-components sets it only on a request it knows came over HTTPS. HSTS is the proxy's: Caddy adds
   `Strict-Transport-Security`, which the service never sends.
 
 ## Example

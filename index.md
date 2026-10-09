@@ -78,6 +78,7 @@ them from there through its `beyonda.config.json`.
 | `.en.json` and `.es.json` in step, key case and depth   | `bey-check-translations`           |
 | Minimum coverage                                        | Jest thresholds                    |
 | Exact versions, no local link in a commit               | `bey-check-dependencies`           |
+| An app's production build inlines no critical CSS       | `bey-config check` (`inline-critical-css`) |
 | Express: no default export, `node:` imports             | ESLint (`eslint.express`)          |
 | Express: `process.env` only in `src/environment.ts`, `console` only in `src/index.ts` | ESLint (`eslint.express`) |
 | Express app: the driver and umzug only through the library | ESLint (`eslint.express`)       |
