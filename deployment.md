@@ -34,13 +34,19 @@ front, that runs on any machine without being configured for it.
   for one system and one version of Node.
 - **The compose lives in `docker/` of the service repo**: `compose.yaml` runs the image and is the only file a target
   needs, `compose.build.yaml` adds the build and its secret, and `.env.example` names what a machine may change
-  (`PORT`, `VERSION`, the admin, `TRUST_PROXY`). The published port is the one [ports.md](ports.md) reserves.
+  (`PORT`, `VERSION`, the admin, `TRUST_PROXY`, `FRONT_URL` and the mail account). The published port is the one
+  [ports.md](ports.md) reserves.
 - **An image moves as a file**: `docker save <image> -o <image>.tar` on the machine that built it, `docker load` and
   `docker compose up -d` next to `compose.yaml` on the target.
 - **Behind a proxy, the service trusts it**: when Caddy terminates HTTPS in front of the image, `TRUST_PROXY` names
   it, so the logs and the rate limits see each client by its own address, and the refresh cookie goes out `Secure`,
   since express-components sets it only on a request it knows came over HTTPS. HSTS is the proxy's: Caddy adds
   `Strict-Transport-Security`, which the service never sends.
+- **The mail account belongs to the machine, never to the image**: the image keeps the log transport of
+  express-components as its default, so it starts anywhere. A deployment sets `MAIL_TRANSPORT=smtp`, `SMTP_USER`,
+  `SMTP_PASSWORD` (an app password, never the account's own) and `MAIL_FROM` in the `.env` next to `compose.yaml`,
+  and `FRONT_URL` to the public address behind the proxy, since the image cannot know the address the mailed links
+  must open. The log transport writes every link, token included, to the log, so no deployment keeps it.
 
 ## Example
 
