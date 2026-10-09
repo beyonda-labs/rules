@@ -14,10 +14,17 @@ front, that runs on any machine without being configured for it.
 - **The front holds no address**: it calls `/api` on the origin that served it. `environment.production.ts` replaces
   `environment.ts` through `fileReplacements`, and in development the Angular dev server passes `/api` to the service
   (`proxy.conf.json`, stripping the prefix), so the app makes the same calls in both.
+- **The front builds for a Content Security Policy**: the service sends the front policy of express-components as a
+  header, so nothing in `index.html` may be inline. The production build sets `inlineCritical: false`, whose stylesheet
+  loader is an inline `onload` the policy refuses. A front that needs another source widens
+  `frontContentSecurityPolicy` in `buildAppConfig`, and never with `'unsafe-inline'` in `script-src`.
 - **The image carries its defaults and nothing of a machine**: the paths of the data, the backups, the logs and the
   secrets point under `/data`, a volume, and the process runs as `node`. A missing JWT secret is generated once and
   kept in `SECRETS_PATH`; without admin credentials the first start creates the superadmin and prints them to the
   standard output, never to the log files. Moving the image takes no certificate, path or configuration file.
+- **The image answers for its health**: a `HEALTHCHECK` calls `/ready` with the `fetch` of Node, as the slim image
+  has no curl, and the compose sets a `stop_grace_period` above the 10 seconds `beyStartServer` gives the requests in
+  flight, so `docker stop` lets the process close its database before it is killed.
 - **The registry certificate is a build secret**: the Verdaccio CA reaches the build as `--mount=type=secret` (from
   `NPM_CA_FILE` or `NODE_EXTRA_CA_CERTS`), never a layer of the image. Installs use `--frozen-lockfile`; the
   production dependencies come from `--prod --ignore-scripts` followed by `pnpm rebuild` of the native modules, built
@@ -30,7 +37,8 @@ front, that runs on any machine without being configured for it.
 - **An image moves as a file**: `docker save <image> -o <image>.tar` on the machine that built it, `docker load` and
   `docker compose up -d` next to `compose.yaml` on the target.
 - **Behind a proxy, the service trusts it**: when Caddy terminates HTTPS in front of the image, `TRUST_PROXY` names
-  it, so the logs and the rate limits see each client by its own address.
+  it, so the logs and the rate limits see each client by its own address. HSTS is the proxy's: Caddy adds
+  `Strict-Transport-Security`, which the service never sends.
 
 ## Example
 
@@ -62,6 +70,8 @@ COPY --from=build /app/dist ./dist
 RUN mkdir /data && chown node:node /data
 USER node
 VOLUME /data
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD ["node", "-e", "fetch(`http://127.0.0.1:${process.env.PORT}/ready`).then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
 CMD ["node", "dist/index.js"]
 ```
 
@@ -72,6 +82,7 @@ services:
   document-builder:
     image: document-builder:${VERSION:-latest}
     restart: unless-stopped
+    stop_grace_period: 15s
     ports:
       - "${PORT:-8084}:3100"
     volumes:

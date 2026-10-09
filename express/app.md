@@ -8,14 +8,18 @@ product and the demo of the Express library.
 - **`src/index.ts` only starts the process**: it reads the environment, creates the logger, opens the database, runs
   the migrations, seeds the reference data and listens. When a step fails the process ends with a non-zero code; it never listens
   on an app that did not finish starting.
+- **It listens through `beyStartServer`**, never `app.listen`: on `SIGTERM` or `SIGINT` the server stops taking
+  connections, lets the requests in flight finish and then runs `onClose`, which closes the database and the logger,
+  so `docker stop` ends the process cleanly instead of killing it.
 - **The environment is read once**, in `src/environment.ts`: `readEnvironment(variables = process.env)` checks every
   variable, applies the defaults and returns a typed `Environment`; a spec passes its own variables. `process.env`
   appears nowhere else, and `.env.example` lists every variable it reads.
 - **`src/app.ts` only wires**: `createApp(dependencies)` builds what several resources share (the app config, the
   access guards, the user store, the stores of the entities they all read), calls the module of every resource and
-  hands them to the library's `beyInitBaseApp({ appConfig, routes, userStore, logger })`, which adds the request log,
-  CORS for `appConfig.corsOrigin`, the rate limits, JSON up to `appConfig.bodyLimit`, the authentication routes, the
-  modules in order and the error handler last. No route, handler or query of its own.
+  hands them to the library's `beyInitBaseApp({ appConfig, healthChecks, routes, userStore, logger })`, which adds the
+  security headers, `/health` and `/ready` (running the `healthChecks`, at least `beyCreateDatabaseHealthCheck`), the
+  request log, CORS for `appConfig.corsOrigin`, the rate limits, JSON up to `appConfig.bodyLimit`, the authentication
+  routes, the modules in order and the error handler last. No route, handler or query of its own.
 - **One logger for the whole process**: `src/index.ts` builds it with `beyCreateLogger(buildLoggerConfig(environment))`
   and hands it to `createApp`, so the start, every request and every unhandled error end up in the same place. Where
   it writes (files or the standard output), its format and its level come from the environment; a spec takes
@@ -59,7 +63,14 @@ async function start(): Promise<void> {
     });
     beySeedAccounts(database, buildAppConfig(environment).authentication.persistence, message => logger.info(message));
     await seedSystemVariables(database);
-    createApp({ database, environment, logger }).listen(environment.port);
+    await beyStartServer(createApp({ database, environment, logger }), {
+        logger,
+        onClose: async () => {
+            database.close();
+            await logger.close();
+        },
+        port: environment.port
+    });
 }
 
 start().catch(error => {
@@ -77,6 +88,7 @@ export function createApp({ database, environment, logger }: AppDependencies): A
 
     return beyInitBaseApp({
         appConfig,
+        healthChecks: [beyCreateDatabaseHealthCheck(database)],
         logger,
         routes: [
             ['/templates', createTemplatesModule(shared)],

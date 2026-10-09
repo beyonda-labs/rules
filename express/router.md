@@ -16,6 +16,8 @@ Conventions for the routes of an Express app or library, on Express 5.
   guards the app builds once with `beyCreateAccessGuards(authentication)` and hands to every router as a
   dependency; it authenticates too. The permission is the one named after the action (`ConvertToBlock` for
   `/convert-to-block`); a route open to any signed-in user uses `requireAuth()` from the same guards and says so.
+  The only routes open without a token are those of the library: the authentication ones and `/health` and `/ready`
+  of base-app.
 - **The body is parsed, never cast**: `beyParseBody(request, SCHEMA)` validates it against a schema of the library
   and returns it typed, or throws the validation error. Neither `request.body as X` nor
   `request.body['x'] as string` appears.
@@ -25,6 +27,9 @@ Conventions for the routes of an Express app or library, on Express 5.
 - **The response body is typed** by an interface in `models/` (`TemplateStatusResponse`), the one the service
   returns. Status codes: `201` with the created resource, `200` with a body, `204` without one; never `200` with an
   empty body.
+- **A file goes out as its bytes**, never as base64 inside JSON: the service returns a `Buffer` and the route sends it
+  with its `Content-Type`, and with `Cache-Control: no-store` when it holds the data of a user. The headers are set
+  after the `await` that produces it, so a failure still reaches the error handler as JSON.
 - **A list that `bey-page` shows answers a `BeyPageResponse`**, as the entity routes of the library do; any other
   list is returned whole, read with `findAll`.
 - **Routes go from the most specific to the least** (`/blocks` before `/:id`), and a router that extends one of the

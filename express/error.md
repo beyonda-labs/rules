@@ -8,7 +8,8 @@ Conventions for the failures an Express app or library reports, and for the body
   `BeyForbiddenError`, `BeyNotFoundError`, `BeyConflictError` and the field validation errors, all of them
   `BeyAppError`. A plain `Error` means a bug, and it is answered with a `500`.
 - **The error handler writes every error body**: `{ errorCode, messageKey, messageParameters, details, timestamp }`,
-  leaving out the fields without a value. Nothing else answers a `4xx` or a `5xx`.
+  leaving out the fields without a value. Nothing else answers a `4xx` or a `5xx`, save `GET /ready` of base-app: its
+  `503` is a state a container or a balancer reads, `{ status, checks }`, not an error the front shows.
 - **`errorCode` names the kind of failure** and comes from the class (`bad-request`, `not-found`,
   `invalid-field-range`). A kind of failure several products can meet gets its class in the library; a reason that
   belongs to one domain is a `messageKey` on an existing class.
