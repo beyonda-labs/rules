@@ -7,26 +7,34 @@ services, stores, migrations, errors and tests.
 
 - **Generic, never tied to a product**: nothing of the domain of a product and no dependency on a product
   package. A module only one product uses, such as the PDF generation of document builder, lives in that product.
-- **Every module has its own `public-api.ts`** in `src/lib/modules/<module>/`, and the root `src/public-api.ts`
-  only re-exports those files. A consumer never imports a deep path. Inside the library a module imports the file
-  of another one directly, under its own unprefixed name, never through a `public-api.ts`; what several modules
-  share and no consumer needs goes to `src/lib/internal/<topic>/`.
+- **Every module has its own `public-api.ts`** in `src/lib/modules/<module>/`, the root `src/lib/public-api.ts`
+  only re-exports those files, and `src/index.ts`, the entry the build reads, only re-exports the root. A consumer
+  never imports a deep path. Inside the library a module imports the file of another one directly, under its own
+  unprefixed name, never through a `public-api.ts`; what several modules share and no consumer needs goes to
+  `src/lib/internal/<topic>/` (`internal/sqlite/`, `internal/search/`), which, `internal/testing/` aside, depends
+  only on the modules at or below the lowest one that uses it.
 - **The modules form no import cycle**: each one depends only on the ones below it (`logger`, `http-errors`,
   `rate-limiter`, `validation`, `persistence`, `mail`, `user-store`, `edit-locks`, `sharing`, `authentication`,
   `account`, `base-entity`, `users`, `organizations`, `groups`, `roles`, `attachments`, `base-app`). A module takes the
   part of a config it reads as a structural context (`AuthenticationContext`), never the app config of the module that
   composes it.
+- **The order binds the code, not the schema**: the tables of the library are one schema, which `beyRunMigrations`
+  builds whole before a store runs, so the SQL of an adapter may read a table the migrations of a higher module
+  create (the role adapter reads `group_members`). Its spec may then import the store of that module, only to
+  write those rows.
 - **Everything public is renamed with the library prefix** on the way out, as in the component library: types and
   classes start with `Bey` (`BeyAppConfig`, `BeyNotFoundError`), functions with `bey` (`beyCreateAuthModule`,
   `beyRequirePermission`). Without exception, so a consumer never has to alias.
 - **A module is built by a factory**: `<module>.module.ts` exports the function that builds its router from one
   object of dependencies (`{ appConfig, store, ...hooks }`). Next to it sit `<module>.router.ts`, `models/`,
-  `services/`, `stores/` (with `stores/adapters/` when there is more than one engine), `middleware/`,
-  `functions/`, `migrations/` and `docs/`. A middleware is `<name>.middleware.ts`, a factory that returns a
-  `RequestHandler`.
+  `services/`, `stores/` (with their engine in `stores/adapters/`, as [store.md](store.md) says), `middleware/`,
+  `functions/`, `migrations/` and `docs/`. A middleware is `<name>.middleware.ts`, a factory of what a router or an
+  app mounts: a `RequestHandler` or an `ErrorRequestHandler`, a guard factory that returns one per call
+  (`beyCreateItemActionGuard`), or the guards built from one config (`beyCreateAccessGuards`). A guard is named
+  `require<What>`, as [router.md](router.md) uses them.
 - **Config classes are models**: they follow [angular/class-model.md](../angular/class-model.md), with their
   `<Name>Parameters` interface exported as `export type`, in `models/<name>.model.ts`. There is no `.config.ts`
-  suffix, and a function that builds a config is a function module.
+  suffix, and a function that builds a config, or a hook a module is wired with, is a function module.
 - **The library never reads `process.env`**: it receives values (`jwtSecret`), never the name of a variable to read
   (`jwtSecretEnv`). The app reads its environment, as [app.md](app.md) says.
 - **Test support is the `<package>/testing` entry point**, with sources under `testing/src/`: the test server, the
@@ -42,9 +50,13 @@ services, stores, migrations, errors and tests.
   in `typesVersions`, because an app on `moduleResolution: node` does not read `exports` and finds no types.
 - **Published to the private registry** through `publishConfig.registry`, with `.npmrc` sending the scope there;
   every push to develop publishes a `<version>-develop.<build>.<sha>` snapshot.
-- **Every module has a `docs/<module>-readme.md`** with the shape the component library uses: one paragraph on what
-  it does, a table of its config and its dependencies, and a minimal usage example. The change detail goes in
-  `docs/change-log.md`.
+- **Every module has a `docs/<module>-readme.md`** in the order the component library uses: a paragraph on what it
+  does, `## Usage` with a minimal example, a `## <Name>` table for the dependencies of its factory and for each
+  exported config, then one section per topic a consumer needs and the types do not tell, named after it: who may
+  call it (`Access`), its routes and what they answer (`Routes`), its `Message keys`, its `Tables`, a behaviour
+  (`Deletion`). The change detail goes in `docs/change-log.md`.
+- **A README names only exported API**: the prefixed names a consumer imports (`beyCreateGroupsModule`), never an
+  internal function or store of the module, whose work it tells as what the consumer sees.
 - **A breaking change to an exported name is a major**, and the old name is not kept as an alias.
 
 ## Example
@@ -54,6 +66,12 @@ services, stores, migrations, errors and tests.
 export { createErrorHandler as beyCreateErrorHandler } from './middleware/error-handler.middleware';
 export { AppError as BeyAppError } from './models/app-error.model';
 export type { AppErrorOptions as BeyAppErrorOptions } from './models/app-error.model';
+
+// src/lib/public-api.ts
+export * from './modules/http-errors/public-api';
+
+// src/index.ts
+export * from './lib/public-api';
 ```
 
 ```json

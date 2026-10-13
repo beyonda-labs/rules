@@ -21,8 +21,10 @@ and the stores.
   cannot be fulfilled. Never a `Request`, a `Response` nor a status code.
 - **It stamps what the user changes**: a method that changes a row for the user takes the write options
   (`{ userId }`) and passes them last to the write of the store, which stamps `updatedAt` and `updatedBy` in that
-  same write. A change kept in another table marks the row it belongs to with `update(id, {}, options)`, in the
-  same transaction. A write of its own bookkeeping, such as linking a copy to its definition, goes without them.
+  same write. It holds for every table a user edits, whatever module owns it: a stamp is always the pair, and the
+  service never hands the store a time instead. A change kept in another table marks the row it belongs to with
+  `update(id, {}, options)`, in the same transaction. A write of its own bookkeeping, such as linking a copy to its
+  definition, goes without them, and a time the row holds as data (`deactivatedAt`, `lastLoginAt`) is not a stamp.
 - **Writes through several stores are one transaction**: `store.transaction(work)`, which every store on the same
   connection joins. Inside it the service awaits only those stores: a file, a hash or a network call goes before
   or after it.

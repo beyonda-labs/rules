@@ -23,8 +23,11 @@ stores, models and functions behind them.
   does not touch the order of the others, and `max-params` is never the reason to merge two of them.
 - **Services and stores by kind**, as [service.md](service.md) and [store.md](store.md) describe:
   `<thing>.service.ts` runs what a route does, `<thing>.store.ts` reads and writes its tables.
-- **A resource imports another one's models, never its services, stores or functions**: those arrive as
-  dependencies, or move to `src/shared/` (`shared/functions/`, `shared/models/`) when several resources use them.
+- **A resource imports another one's models and entity config, never its services, stores or functions**: those
+  arrive as dependencies, or move to `src/shared/` (`shared/functions/`, `shared/models/`, `shared/stores/`) when
+  several resources use them, and `src/shared/` follows the same rule. An entity config only declares the entity
+  ([app.md](app.md)), so a store that reads its table builds it again (`buildTemplatesEntityConfig()`) instead of
+  taking it as a dependency.
 - **The contracts of a resource** (row types, request and response bodies, dependency interfaces, the permission
   enum, the constants) live in `models/<thing>.model.ts`.
 - **Migrations are not part of a resource**: they live in `src/migrations/`, as [migration.md](migration.md)

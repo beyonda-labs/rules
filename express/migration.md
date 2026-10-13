@@ -16,6 +16,10 @@ Conventions for changing the schema and the stored data of a database, in an Exp
 - **Order at start-up**: the copy, the migrations of the library, the entity tables their configs declare
   (`ensureTable` creates or completes them), then the migrations of the app, which may read those tables. Seeding
   comes after all of them.
+- **Two changes of the schema are not migrations**, and `beyRunMigrations` makes both: the `schema_migrations`
+  table it keeps its record in, and the tables of the entities the library manages, which `ensureTable` creates or
+  completes from their configs (columns, indexes, the owner of the rows from before ownership, the content table of
+  the attachments). Nothing else issues `CREATE`, `ALTER` or `PRAGMA table_info` outside a migration.
 - **An app keeps its migrations in `src/migrations/`**, one file per migration named `<number>-<change>.ts`
   (`002-template-definition-owner-index.ts`) exporting the function that applies it, and `migrations.ts` listing
   them in order as `{ name, up }`. The numbering is one sequence for the whole app, because a migration of one
@@ -28,7 +32,9 @@ Conventions for changing the schema and the stored data of a database, in an Exp
 - **A migration that changes stored documents** hydrates them with the model library, changes them through its
   functions (`isLegacyReference`, `toImageReference`) and writes them back; it never picks the JSON apart by hand.
 - **Reference data that follows the code is seeded, not migrated**: system variables and roles are upserted after
-  the migrations on every start, so a new one appears without a migration.
+  the migrations on every start, so a new one appears without a migration. An app seeds through its stores, from a
+  method of a service (`seedSystemVariables`); a seeding function of the library (`beySeedAccounts`) takes the
+  connection, as a store does, and keeps its SQL where [store.md](store.md) says.
 - **Every migration has a spec**: an in-memory database in the state before it, the migration, and what the data
   looks like after it.
 - **No comments in the code**.

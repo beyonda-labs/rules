@@ -6,8 +6,8 @@ product and the demo of the Express library.
 ## Rules
 
 - **`src/index.ts` only starts the process**: it reads the environment, creates the logger, opens the database, runs
-  the migrations, seeds the reference data and listens. When a step fails the process ends with a non-zero code; it never listens
-  on an app that did not finish starting.
+  the migrations, seeds the reference data through the service that owns it, as the system, and listens. When a step
+  fails the process ends with a non-zero code; it never listens on an app that did not finish starting.
 - **It listens through `beyStartServer`**, never `app.listen`: on `SIGTERM` or `SIGINT` the server stops taking
   connections, lets the requests in flight finish and then runs `onClose`, which closes the database and the logger,
   so `docker stop` ends the process cleanly instead of killing it.
@@ -55,6 +55,7 @@ async function start(): Promise<void> {
     const environment = readEnvironment();
     const logger = beyCreateLogger(buildLoggerConfig(environment));
     const database = beyOpenDatabase(environment.databasePath);
+    const globalVariableStore = beyCreateEntityStore<GlobalVariable>(database, buildGlobalVariablesEntityConfig());
 
     await beyRunMigrations(database, {
         backupDirectory: environment.backupDirectory,
@@ -62,7 +63,7 @@ async function start(): Promise<void> {
         migrations: MIGRATIONS
     });
     beySeedAccounts(database, buildAppConfig(environment).authentication.persistence, message => logger.info(message));
-    await seedSystemVariables(database);
+    await beyRunAsSystem(() => createGlobalVariableService({ globalVariableStore }).seedSystemVariables());
     await beyStartServer(createApp({ database, environment, logger }), {
         logger,
         onClose: async () => {
