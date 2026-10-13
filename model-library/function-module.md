@@ -6,14 +6,18 @@ takes a model and returns a value.
 ## Rules
 
 - **Plain exported functions, never a class.** There is no state to hold, so there is nothing to instantiate or
-  inject; a class would only add a `new` to every call.
+  inject; a class would only add a `new` to every call. No `let` sits at the top of the file either.
 - **A function returns a new value and never mutates its argument.**
 - **The file is named after what its functions do**, without a technical suffix: `item-problems.ts`,
   `document-cloning.ts`, `attachment-reference-status.ts`. Only model files carry one, `.model.ts`.
 - **Functions are grouped by the question they answer**: everything that reports problems of an item in one
   module, everything that copies in another. A module that answers two questions is split.
-- **Constants go at the top of the file in `SCREAMING_SNAKE_CASE`**, and what only the module uses stays
-  unexported.
+- **What another file imports is a definition and lives in a model file**: a type, an enum or a constant that
+  holds data (a catalogue, a pattern, a limit) goes in `*.model.ts` once a second file reads it, a spec included,
+  and `public-api.ts` exports it from there. A constant whose values are functions, such as a dispatch table, is
+  logic: it stays in the function module and is exported only when another file calls it.
+- **What only the module reads stays at its top, unexported**: its constants in `SCREAMING_SNAKE_CASE` and the
+  types only its functions use (`type ItemCloner`).
 - **Functions go in alphabetical order**, the exported ones as a first group and the internal ones after them,
   as the methods of a class do. Function declarations are hoisted, so the order never changes what runs.
   `perfectionist/sort-modules` enforces it and fixes it on save.

@@ -11,7 +11,7 @@ back and storage.
   `no-restricted-syntax` rule fails on a function declared in a model file.
 - **The shape of a class follows [angular/class-model.md](../angular/class-model.md)**: one class per entity with
   its `<Name>Parameters` interface, a single destructured constructor argument, defaults in the destructuring,
-  required fields before optional ones, alphabetical order everywhere, `is*` booleans.
+  required fields before optional ones, alphabetical order everywhere, booleans with the prefix of their kind.
 - **A model holds data and nothing else**: fields and a constructor that applies the defaults. No methods, no
   getters, no callbacks. A model reaches every consumer as JSON sooner or later, and JSON has no prototype.
 - **Whatever works on a model is a function**, in a function module next to it: copying, validating, deriving a
@@ -42,7 +42,14 @@ export class TextItem extends DocumentItem {
 
     hasSpaceBefore?: boolean;
 
-    constructor({ customName, hasSpaceBefore, id, link = '', styles = new TextStyles({}), text = '' }: TextItemParameters) {
+    constructor({
+        customName,
+        hasSpaceBefore,
+        id,
+        link = '',
+        styles = new TextStyles({}),
+        text = ''
+    }: TextItemParameters) {
         super({ customName, id, type: DocumentItemType.Text });
         this.hasSpaceBefore = hasSpaceBefore;
         this.link = link;

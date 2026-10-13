@@ -71,11 +71,12 @@ them from there through its `beyonda.config.json`.
 | Signal inputs, outputs and queries; `inject()`           | ESLint                             |
 | Member order of components, directives and services     | ESLint (`eslint.class-order`)      |
 | Declaration order; contract-only model files            | ESLint (`eslint.sort-declarations`, `eslint.model-files`) |
-| No literal design value outside the token layer         | stylelint                          |
+| No literal colour, font, border, gap, opacity, z-index or duration outside the token layer | stylelint, as a warning |
+| No literal spacing or letter spacing outside the token layer | prose                         |
 | `--bs-*` never read                                     | stylelint                          |
 | State written as `is-*` / `has-*`                       | stylelint                          |
 | No `!important`                                         | stylelint                          |
-| `.en.json` and `.es.json` in step, key case and depth   | `bey-check-translations`           |
+| `.en.json` and `.es.json` in step, key case and depth; no key defined twice | `bey-check-translations` |
 | Minimum coverage                                        | Jest thresholds                    |
 | Exact versions, no local link in a commit               | `bey-check-dependencies`           |
 | An app's production build inlines no critical CSS       | `bey-config check` (`inline-critical-css`) |
