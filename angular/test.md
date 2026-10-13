@@ -6,10 +6,19 @@ Conventions to follow when writing tests.
 
 - **A test states a behaviour, not a detail.** What is asserted is what the consumer configures and what the consumer observes: rendered text, invoked callbacks, emitted values, resulting state.
 - **Never assert on presentation**: CSS class names, node counts, element order, inline styles or the shape of the markup. They change with every redesign and prove nothing about the component working.
-- **Query by role, `aria-*` or visible text**, never by CSS class. A query by class ties the suite to the stylesheet.
+- **Query by role, `aria-*` or visible text**, never by CSS class. A query by class ties the suite to the
+  stylesheet. A tag counts as a role when HTML gives it one (`button`, `a`, `input`, `select`, `textarea`, `img`,
+  `li`, `h1`–`h6`, `nav`, `table`, `tr`); a generic tag (`div`, `span`, `p`, `label`) does not, and neither does a
+  component's selector, which may only narrow a query to one child (`bey-search [aria-expanded]`), never stand for
+  what that child shows.
 - **Locate only what the test acts on or reads**: the button it clicks, the input it types into, the text it checks. A container is never located to check that it exists; what it contains is checked instead.
 - **No `data-testid`.** An element a test needs to reach is one a user reaches too, so when it has no role or accessible name, the template gets the missing `role` or `aria-label`, not a test hook.
 - **An interaction is a real event on the element** (`click()`, a `KeyboardEvent`), never a call to the handler. The click proves the template wires the element to the behaviour; complex logic behind it belongs in a model or a service with its own spec.
+- **A dialog a fake records is driven through its config**: `BeyFakeModalFormService` renders nothing, so once a
+  real click has opened the form, the spec plays the user's part by calling the callbacks of the recorded config
+  (`onSubmit` with the value a user would submit, a field's `onItemClick`) and asserts what follows: the request,
+  the next form, the fields it offers. The library's own specs prove that the dialog calls them; a callback of what
+  the component renders itself is still reached through a real event.
 - **Attributes are asserted only when they are the contract**: `aria-selected`, `aria-current`, `disabled`. Not the ones that merely happen to be there.
 - **A variant or state that only changes a class has no test.** If the consumer cannot observe it through text, an ARIA attribute or a callback, either give the template the ARIA attribute that names the state (`aria-expanded`, `aria-current`) and assert that, or leave it untested.
 - **One `it()` per behaviour**, not per assertion. Several `expect` in the same `it()` are right when they describe the same behaviour.

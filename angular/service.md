@@ -4,63 +4,77 @@ Conventions to follow when creating or changing a service.
 
 ## Rules
 
-- **One service per responsibility**, named `<Thing>Service` in `<thing>.service.ts`, inside a `services/` folder next to what it serves.
-- **The name says the kind of service**: one that only sends HTTP requests is `<thing>-http.service.ts` (`<Thing>HttpService`), one that only builds form configs is `<thing>-form.service.ts` and one that only builds table rows is `<thing>-table.service.ts`. Form and table builders are services even when they inject nothing, so a page injects all of them the same way and one can gain a dependency (`TranslateService`) without touching its callers. A service that holds state or coordinates others keeps the plain name, and moves its requests, forms and rows to those three; the one that runs what the actions of a page do (open a form, send the request, navigate, build a confirmation) is `<thing>-actions.service.ts`, and the page component only wires it into its config.
-- **`@Injectable({ providedIn: 'root' })` by default**. A bare `@Injectable()` only when the service must hold per-instance state and is listed in a component's `providers`.
-- **Dependencies with `inject()`**, in `private readonly` fields at the top of the class. Never through constructor parameters; a service with no state has no constructor at all.
-- **Order inside the class**: injected dependencies, private state and attributes, public state and attributes, the constructor when there is one, methods. One blank line between blocks and alphabetical order inside each of them. `eslint.class-order` enforces it and fixes it on save.
-- **State lives in signals**: the writable one is private and prefixed with `_`, and what the outside reads is its `asReadonly()` or a `computed`. Nothing outside the service writes state.
+- **One service per responsibility**, named `<Thing>Service` in `<thing>.service.ts`, inside a `services/` folder
+  next to what it serves.
+- **The name says the kind of service**: one that only sends HTTP requests is `<thing>-http.service.ts`
+  (`<Thing>HttpService`), one that only builds form configs is `<thing>-form.service.ts` and one that only builds
+  table rows is `<thing>-table.service.ts`. Form and table builders are services even when they inject nothing, so
+  a page injects all of them the same way and one can gain a dependency (`TranslateService`) without touching its
+  callers. A service that holds state or coordinates others keeps the plain name, and moves its requests, forms and
+  rows to those three; the one that runs what the actions of a page do (open a form, send the request, navigate,
+  build a confirmation) is `<thing>-actions.service.ts`, and the page component only wires it into its config.
+- **`@Injectable({ providedIn: 'root' })` by default**. A bare `@Injectable()` only when the service must hold
+  per-instance state and is listed in a component's `providers`.
+- **Dependencies with `inject()`**, in `private readonly` fields at the top of the class. Never through constructor
+  parameters; a service with no state has no constructor at all.
+- **Order inside the class**: injected dependencies, private state and attributes, public state and attributes,
+  the constructor when there is one, methods. One blank line between blocks and alphabetical order inside each of
+  them. `eslint.class-order` enforces it and fixes it on save.
+- **State lives in signals**: the writable one is private and prefixed with `_`, and what the outside reads is its
+  `asReadonly()` or a `computed`. Nothing outside the service writes state.
 - **Methods go in alphabetical order**, the public ones as a first group and the private ones after them.
-- **Whatever does not need `this` is a plain function** outside the class, and constants go at the top of the file in `SCREAMING_SNAKE_CASE`.
+- **A service file exports its class and nothing else**: the request and response shapes of a `-http` service, the
+  options a `-form` service builds from and the context an actions service receives are read by its callers and its
+  spec, so they live in the model file of the page or module, as [function-module.md](function-module.md) says of
+  any contract. It does not re-export them either. A shape only the service reads, such as the raw answer it maps,
+  stays at the top of the file, unexported.
+- **Whatever does not need `this` is a plain `function` below the class**, a no-op callback such as `ignoreError`
+  included: `perfectionist/sort-modules` puts the functions of a file after its class. Constants go at the top of
+  the file in `SCREAMING_SNAKE_CASE`; a `const` holds a value, never an arrow function.
 - **A service that transforms data returns a new value** and never mutates its argument.
 - **No callbacks as properties**: what a component needs to trigger is a specific method on the service.
-- **An error reaches the user in the error modal, never in a toast**, whether a service or a component reports it. The library's HTTP service opens that modal with the server's reason by default; `handleError` is only for showing a different modal, and a toast only confirms what went right (`successToast`).
+- **An error reaches the user in the error modal, never in a toast**, whether a service or a component reports it.
+  The library's HTTP service opens that modal with the server's reason by default; `handleError` is only for
+  showing a different modal, and a toast only confirms what went right (`successToast`).
 - **No comments in the code**: whatever needs explaining goes in the module's README.
 
 ## Example
 
 ```ts
 const MAX_TERMS = 5;
-const STORAGE_KEY = "recent-searches";
-
-function isBlank(term: string): boolean {
-  return term.trim().length === 0;
-}
+const STORAGE_KEY = 'recent-searches';
 
 @Injectable({
-  providedIn: "root",
+    providedIn: 'root'
 })
 export class RecentSearchService {
-  private readonly storageService = inject(StorageService);
+    private readonly storageService = inject(StorageService);
 
-  private readonly _terms = signal<string[]>(
-    this.storageService.get<string[]>(STORAGE_KEY) ?? [],
-  );
+    private readonly _terms = signal<string[]>(this.storageService.get<string[]>(STORAGE_KEY) ?? []);
 
-  readonly hasTerms = computed(() => this._terms().length > 0);
-  readonly terms = this._terms.asReadonly();
+    readonly hasTerms = computed(() => this._terms().length > 0);
+    readonly terms = this._terms.asReadonly();
 
-  add(term: string): void {
-    if (isBlank(term)) {
-      return;
+    add(term: string): void {
+        if (isBlank(term)) {
+            return;
+        }
+
+        this._terms.update(terms => [term, ...terms.filter(current => current !== term)].slice(0, MAX_TERMS));
+        this.persist();
     }
 
-    this._terms.update((terms) =>
-      [term, ...terms.filter((current) => current !== term)].slice(
-        0,
-        MAX_TERMS,
-      ),
-    );
-    this.persist();
-  }
+    clear(): void {
+        this._terms.set([]);
+        this.persist();
+    }
 
-  clear(): void {
-    this._terms.set([]);
-    this.persist();
-  }
+    private persist(): void {
+        this.storageService.set(STORAGE_KEY, this._terms());
+    }
+}
 
-  private persist(): void {
-    this.storageService.set(STORAGE_KEY, this._terms());
-  }
+function isBlank(term: string): boolean {
+    return term.trim().length === 0;
 }
 ```

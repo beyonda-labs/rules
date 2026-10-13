@@ -9,14 +9,19 @@ table, forms, categories and trash.
   contracts, `services/` for its injectables, `functions/` for its stateless logic and `assets/` for its
   translations. A page reached from another one lives inside it, in
   `pages/<parent>/pages/<page>/`.
+- **What several pages of an app use lives in `src/app/shared/`**, in the folders a page has (`assets/`,
+  `functions/`, `models/`, `services/`), plus one folder per routing artefact the routes of the app wire, named
+  after its suffix in the plural: `guards/` for `<name>.guard.ts`, `strategies/` for `<name>.strategy.ts`. A
+  guard or a strategy lives there even when one route uses it, since the routes of the app wire it, not the page.
 - **The component only wires**: it injects its services, builds the app layout `config` and its page config
   through `build<Page>PageConfig(options)`, keeps the `BeyPageHandle` that `onReady` delivers, and hands every
   callback to a service. No private method, no request, no form and no cell of its own.
 - **`<page>-page-config.ts` is a plain function** that takes everything the page needs as options (form configs,
   row loaders, categories config, confirmations, action callbacks) and returns the `BeyPageConfig`. Standard
   actions come from `beyPageStandardAction` and `beyPageAddAction`; a custom action is a `BeyPageAction` whose
-  `handler` calls one of the options. The constants the config needs, such as the options of a search field, sit
-  at the top of the file.
+  `action` calls one of the options. Its `<Page>PageConfigOptions` interface is a contract its spec reads too, so
+  it lives in the model of the page; the constants only the config reads, such as the options of a search field,
+  sit at the top of the file, unexported.
 - **Services by kind**, as [service.md](service.md) names them: `<entity>-http.service.ts` sends the requests,
   `<entity>-form.service.ts` builds the forms, `<entity>-table.service.ts` builds the rows (`loadRow`,
   `loadCategoryRow`) and `<entity>-actions.service.ts` runs what the custom actions do. A service that holds state
@@ -38,8 +43,9 @@ table, forms, categories and trash.
   column that names the row says `isHideable: false`, and a column worth having but not at first sight says
   `isVisible: false`. The table gets a `storageKey` named as the page, so the columns the user hides are
   remembered, and the widths are shares that fit a 1440 px window without cutting a badge.
-- **The types and constants of the page** (the stored row, badge variants, tooltip keys) live in
-  `models/<entity>.model.ts`.
+- **The types and constants of the page** (the stored row, the options of its config builders, the request and
+  response bodies, badge variants, tooltip keys) live in `models/<entity>.model.ts`, as
+  [function-module.md](function-module.md) says of anything a second file reads.
 - **Specs**: the component spec renders the page with `provideBeyTesting()` and checks the wiring through the DOM
   (rows, actions, forms, requests); the page config and every service have their own spec for what they return.
 - **A workspace page that is not a `bey-page`** (an editor) keeps the same split. Its state lives in
@@ -103,7 +109,7 @@ export function buildTemplatesPageConfig({
           key: 'change-status',
           scope: BeyPageActionScope.Single,
           zone: BeyPageActionZone.Menu,
-          handler: ([template]) => onChangeStatus(template)
+          action: ([template]) => onChangeStatus(template)
         }),
         beyPageStandardAction(BeyPageStandardAction.Delete)
       ]
@@ -115,6 +121,13 @@ export function buildTemplatesPageConfig({
 }
 
 // models/template.model.ts
+export interface TemplatesPageConfigOptions {
+  formConfig: BeyPageFormConfig<TemplateFormValue, Template>;
+  loadRow: (template: Template) => BeyTableCell[];
+  onChangeStatus: (template: Template) => void;
+  onReady: (handle: BeyPageHandle<Template>) => void;
+}
+
 export const TEMPLATES_BASE_URL = '/templates';
 export const TEMPLATE_USAGES_CONFIG = new BeyPageUsagesConfig({
   suffixes: { [TemplateBlockType.ContentBlock]: 'document-builder.templates.usages.block' }

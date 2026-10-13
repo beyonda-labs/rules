@@ -16,10 +16,16 @@ searching a tree, reordering the items of a document.
   pages of an app use it, and `internal/<topic>/` when several modules of a library do. `models/` holds contracts
   only and `services/` only injectables. The only function modules outside `functions/` are the config builders a
   screen starts from, such as `<page>-page-config.ts`, next to its component.
-- **Types and constants it needs go in a model file**, never in the function module: contracts and definitions
-  stay in `*.model.ts`.
+- **What another file imports is a contract and lives in a model file**: a type, an enum or a constant that holds
+  data (a table, a pattern, a limit) goes in `*.model.ts` once a second file reads it, a spec included. A constant
+  whose values are functions, such as a dispatch table, is logic: it stays in the function module and is exported
+  only when another file calls it.
+- **What only the module reads stays at its top, unexported**: its constants in `SCREAMING_SNAKE_CASE` and the
+  types only its functions use.
+- **A function module holds no state**: no `let` at the top of the file and no cache. The one exception is the
+  counter behind unique DOM ids, written once per repo (`internal/dom-ids/` in a library, `shared/functions/` in an
+  app) and used by every component that needs an id, never copied into a module or a component of its own.
 - **Functions are grouped by the question they answer**. A module that answers two questions is split.
-- **Constants go at the top of the file in `SCREAMING_SNAKE_CASE`**, and what only the module uses stays unexported.
 - **Exported functions first, alphabetical, then the internal ones**, alphabetical too. `perfectionist/sort-modules`
   enforces it and fixes it on save.
 - **A function returns a new value and never mutates its argument.**
@@ -34,17 +40,23 @@ searching a tree, reordering the items of a document.
 ```ts
 import { TreeNode } from './tree.model';
 
+const ROOT_LEVEL = 0;
+
 export function collectExpandableKeys<TData>(nodes: TreeNode<TData>[]): string[] {
     return nodes.flatMap(node =>
         node.children.length > 0 ? [node.key, ...collectExpandableKeys(node.children)] : []
     );
 }
 
-export function findNodeByKey<TData>(nodes: TreeNode<TData>[], key?: string): TreeNode<TData> | undefined {
-    for (const node of nodes) {
-        const found = node.key === key ? node : findNodeByKey(node.children, key);
+export function findNodeLevel<TData>(nodes: TreeNode<TData>[], key: string): number | undefined {
+    return findLevel(nodes, key, ROOT_LEVEL);
+}
 
-        if (found) {
+function findLevel<TData>(nodes: TreeNode<TData>[], key: string, level: number): number | undefined {
+    for (const node of nodes) {
+        const found = node.key === key ? level : findLevel(node.children, key, level + 1);
+
+        if (found !== undefined) {
             return found;
         }
     }

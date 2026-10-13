@@ -15,7 +15,13 @@ models, services, styles, translations and tests.
 - **Test support is the `<package>/testing` entry point**, with sources under `testing/src/`: the DOM helpers, `provide<Prefix>Testing` and a fake per service a consumer would otherwise mock. It imports the library by its package name, nothing in the library imports it, and its code does not depend on Jest, so fakes record calls in signals and a spec may still spy on them.
 - **`sideEffects` lists only the CSS files.** Anything else there stops consumers from tree-shaking the library.
 - **Only runtime assets are packaged**: translations, images and the style-guide translations the `<package>/style-guide` entry point loads at runtime. Never `docs/`.
-- **Every module has a `docs/<module>-readme.md`** with a fixed shape: one paragraph on what it does, a table of the config's fields, and a minimal usage example. Nothing that the types already say, no changelog, no roadmap.
+- **Every module has a `docs/<module>-readme.md`** in one order: a paragraph on what it does, `## Usage` with a
+  minimal example, a `## <Name>` table for each exported config, model or service, then one section per topic a
+  consumer needs and the types do not tell, named after it: a behaviour (`Keyboard`), the requests it sends and what
+  it expects back (`Requests`), the keys of its texts (`Texts`), its `--bey-<module>-*` variables (`Theming`).
+  Nothing that the types already say, no changelog, no roadmap.
+- **A README names only exported API**: the prefixed names a consumer imports (`BeyPageConfig`), never a child, an
+  internal service or a function of the module, whose work it tells as what the consumer sees.
 - **A breaking change to an exported name is a major**, and the old name is not kept as an alias.
 
 ## Example

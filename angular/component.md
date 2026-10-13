@@ -4,7 +4,10 @@ Conventions to follow when creating or changing a component.
 
 ## Rules
 
-- **One folder per module**, named after it, holding `<name>.component.ts`, `.html`, `.css` and `.spec.ts`, plus `models/`, `services/`, `components/` for its children, `assets/` for its translations and `docs/` for its README. Its demo lives in the style-guide entry point, under `style-guide/src/<module>/`, since a secondary entry point can only compile sources inside its own folder.
+- **One folder per module**, named after it, holding `<name>.component.ts`, `.html` and `.spec.ts`, a `.css` when
+  it has styles of its own, plus `models/`, `services/`, `components/` for its children, `assets/` for its
+  translations and `docs/` for its README. Its demo lives in the style-guide entry point, under
+  `style-guide/src/<module>/`, since a secondary entry point can only compile sources inside its own folder.
 - **Standalone components**, with `imports` listing only what the template uses, `selector` prefixed with the repo default prefix, and `templateUrl`/`styleUrls` always in separate files. Never an inline template.
 - **`ChangeDetectionStrategy.OnPush` always.** There is no component that opts out.
 - **A child component that only makes sense inside the module lives in its `components/`** and is not exported.
@@ -14,9 +17,14 @@ Conventions to follow when creating or changing a component.
 - **A component wrapping an event source is the exception**: where the thing being wrapped emits a stream of
   its own — a viewer, an editor, a map — a curated set of `output()` is the honest API, and folding those
   events into config callbacks only hides where they come from.
-- **A helper that is not part of the public surface may take plain inputs**: an internal wrapper whose whole
-  API is one or two primitives does not get a config class. The config model is there to keep a published
-  API stable, not to add ceremony to a layout helper.
+- **A component that is not exported takes plain inputs**: a child under `components/` or a helper under
+  `internal/` gets no config class, since no consumer builds one for it. It takes the models and the values its
+  parent already holds, as many as it needs, and talks back through `output()`. The config model is there to keep
+  a published API stable, not to add ceremony inside a module.
+- **A type only the component file reads stays in it, unexported**: the shape of a rendered row, a drag state. A
+  type another file imports, a child or a spec, lives in `models/`.
+- **A unique DOM id comes from the repo's id module** ([function-module.md](function-module.md)), never from a
+  counter of the component, a `let` of its file or a `static` field.
 - **Derived state is a `computed()`**, local state a `signal()`. Never a setter input with a `_`-prefixed field, never an injected `ChangeDetectorRef`.
 - **A method instead of a `computed()` only when the value reads something that is not a signal** — form control validity, a DOM measurement — since a `computed()` would not recompute.
 - **Dependencies are injected with `inject()`**, never through constructor parameters.
@@ -27,7 +35,9 @@ Conventions to follow when creating or changing a component.
 - **Nothing is computed twice in the template**: what the class can resolve, it resolves.
 - **Attributes follow a fixed order**: structural directive, `#ref`, `id`, `class`, other static attributes, inputs (`[x]`, `[attr.*]`, `[class.*]`), two-way bindings, outputs; alphabetical within each group. Prettier enforces it with `prettier-plugin-organize-attributes`, so it is never ordered by hand.
 - **Labels and placeholders are translation keys**, resolved with the `translate` pipe and defaulted from the config prefix when the consumer does not give one.
-- **Styles live in the component's own `.css`**, and what several children share goes in one file next to them, imported through `styleUrls`.
+- **A `.css` only when the component has styles of its own**: a routed page or a shell whose template only lays
+  out other components with Bootstrap utilities has none, and no `styleUrls`. How a stylesheet is written, its
+  `:host` and what several children share, is in [styles.md](styles.md).
 - **No comments in the code**: whatever needs explaining goes in the module's README.
 
 ## Example
