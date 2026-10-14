@@ -71,8 +71,8 @@ them from there through its `beyonda.config.json`.
 | Signal inputs, outputs and queries; `inject()`           | ESLint                             |
 | Member order of components, directives and services     | ESLint (`eslint.class-order`)      |
 | Declaration order; contract-only model files            | ESLint (`eslint.sort-declarations`, `eslint.model-files`) |
-| No literal colour, font, border, gap, opacity, z-index or duration outside the token layer | stylelint, as a warning |
-| No literal spacing or letter spacing outside the token layer | prose                         |
+| No literal design value outside the token layer: colour, font, border, spacing, letter spacing, opacity, z-index, duration | stylelint |
+| No literal in a `--bey-<module>-*` variable unless styles.md allows it | prose |
 | `--bs-*` never read                                     | stylelint                          |
 | State written as `is-*` / `has-*`                       | stylelint                          |
 | No `!important`                                         | stylelint                          |
