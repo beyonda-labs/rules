@@ -14,10 +14,10 @@ services, stores, migrations, errors and tests.
   `src/lib/internal/<topic>/` (`internal/sqlite/`, `internal/search/`), which, `internal/testing/` aside, depends
   only on the modules at or below the lowest one that uses it.
 - **The modules form no import cycle**: each one depends only on the ones below it (`logger`, `http-errors`,
-  `rate-limiter`, `validation`, `persistence`, `mail`, `user-store`, `edit-locks`, `sharing`, `authentication`,
-  `account`, `base-entity`, `users`, `organizations`, `groups`, `roles`, `attachments`, `base-app`). A module takes the
-  part of a config it reads as a structural context (`AuthenticationContext`), never the app config of the module that
-  composes it.
+  `rate-limiter`, `validation`, `persistence`, `mail`, `user-store`, `edit-locks`, `sharing`, `audit-trail`,
+  `notifier`, `authentication`, `account`, `base-entity`, `audit`, `notifications`, `users`, `organizations`, `groups`,
+  `roles`, `attachments`, `base-app`). A module takes the part of a config it reads as a structural context
+  (`AuthenticationContext`), never the app config of the module that composes it.
 - **The order binds the code, not the schema**: the tables of the library are one schema, which `beyRunMigrations`
   builds whole before a store runs, so the SQL of an adapter may read a table the migrations of a higher module
   create (the role adapter reads `group_members`). Its spec may then import the store of that module, only to
