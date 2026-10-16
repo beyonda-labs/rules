@@ -11,7 +11,7 @@ services, stores, migrations, errors and tests.
   only re-exports those files, and `src/index.ts`, the entry the build reads, only re-exports the root. A consumer
   never imports a deep path. Inside the library a module imports the file of another one directly, under its own
   unprefixed name, never through a `public-api.ts`; what several modules share and no consumer needs goes to
-  `src/lib/internal/<topic>/` (`internal/sqlite/`, `internal/search/`), which, `internal/testing/` aside, depends
+  `src/lib/internal/<topic>/` (`internal/search/`, `internal/async/`), which, `internal/testing/` aside, depends
   only on the modules at or below the lowest one that uses it.
 - **The modules form no import cycle**: each one depends only on the ones below it (`logger`, `http-errors`,
   `rate-limiter`, `validation`, `persistence`, `mail`, `user-store`, `edit-locks`, `sharing`, `audit-trail`,
@@ -27,7 +27,7 @@ services, stores, migrations, errors and tests.
   `beyRequirePermission`). Without exception, so a consumer never has to alias.
 - **A module is built by a factory**: `<module>.module.ts` exports the function that builds its router from one
   object of dependencies (`{ appConfig, store, ...hooks }`). Next to it sit `<module>.router.ts`, `models/`,
-  `services/`, `stores/` (with their engine in `stores/adapters/`, as [store.md](store.md) says), `middleware/`,
+  `services/`, `stores/` (with their SQL in `stores/adapters/`, as [store.md](store.md) says), `middleware/`,
   `functions/`, `migrations/` and `docs/`. A middleware is `<name>.middleware.ts`, a factory of what a router or an
   app mounts: a `RequestHandler` or an `ErrorRequestHandler`, a guard factory that returns one per call
   (`beyCreateItemActionGuard`), or the guards built from one config (`beyCreateAccessGuards`). A guard is named
@@ -38,13 +38,13 @@ services, stores, migrations, errors and tests.
 - **The library never reads `process.env`**: it receives values (`jwtSecret`), never the name of a variable to read
   (`jwtSecretEnv`). The app reads its environment, as [app.md](app.md) says.
 - **Test support is the `<package>/testing` entry point**, with sources under `testing/src/`: the test server, the
-  tokens, the in-memory database with its migrations and the test authentication config. It imports the library
-  by its package name, nothing in the library imports it, and the specs of the library use it too, so no
+  tokens, the test database on each engine with its migrations and the test authentication config. It imports the
+  library by its package name, nothing in the library imports it, and the specs of the library use it too, so no
   `*.test-helpers.ts` sits next to the code. A fixture several specs of the library share and no consumer needs
   lives in `src/lib/internal/testing/`, which the coverage leaves out.
 - **`express` is a peer dependency**, as Angular is in the component library, so the app and the library share
-  one copy and one set of types. The other runtime dependencies are few and justified (the SQLite driver, JWT,
-  hashing, umzug), and every version is exact.
+  one copy and one set of types. The other runtime dependencies are few and justified (Kysely and the drivers of
+  both engines, `better-sqlite3` and `mysql2`, JWT, hashing, umzug), and every version is exact.
 - **Built as CommonJS and ES modules with types** (`tsup`: `cjs`, `esm`, `dts`), with one entry per public entry
   point (`.`, `./testing`) listed in `exports`, and `"sideEffects": false`. A secondary entry point is also listed
   in `typesVersions`, because an app on `moduleResolution: node` does not read `exports` and finds no types.

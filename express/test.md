@@ -15,8 +15,8 @@ about any test.
 - **What is asserted is what a client or the database observes**: the status code, the response body and what a
   later request or a store read returns. Never the SQL a store runs, the calls between the functions of the repo or
   the private state of a factory. A spec reads a table itself only where no store can show the state: a change of
-  the schema (a migration, `ensureTable` on an older database) or a row the stores hide by design, such as a
-  definition left without its template.
+  the schema (a migration, `beyEnsureEntityTables` on an older database) or a row the stores hide by design, such as
+  a definition left without its template.
 - **A router is tested over HTTP on the real app**: `beyStartTestServer(createApp(...))` listens on a free port and
   sends each request through `fetch` with a token for the given roles; the library mounts its module on an app as
   a consumer does. Its spec covers what a client observes: who may call each route, what it parses, every status
@@ -28,15 +28,29 @@ about any test.
   with the defaults and the changes of the case. `beforeEach` calls it, an `it()` that needs another configuration
   calls it again (or `restart(overrides)`, which first closes the server running), and `afterEach` closes the last
   one.
-- **Stores are never faked**: a spec that needs data writes it through the real stores, on an in-memory database
-  from `beyCreateTestDatabase({ entities: buildEntityConfigs(), migrations: MIGRATIONS })`, built the way production
-  builds its own. A row no store writes the way the spec needs it (a fixed id, a user outside every organization)
-  goes through a seeding helper of the library (`beySeedEntityRows`, `<package>/testing`), never through SQL in a
-  spec or a fixture. The one exception is a state the stores refuse by design, such as a definition whose template
-  is gone, which a spec proving that the stores ignore it writes in SQL, as it reads such a row.
+- **Stores are never faked**: a spec that needs data writes it through the real stores, on the test database of
+  `beyCreateTestDatabase({ entities: buildEntityConfigs(), migrations: MIGRATIONS })`, built the way production
+  builds its own: in memory on SQLite, a schema of its own on the MySQL server of the tests. A row no store writes
+  the way the spec needs it (a fixed id, a user outside every organization) goes through a seeding helper of the
+  library (`beySeedEntityRows`, `<package>/testing`), never through SQL in a spec or a fixture. The one exception is a
+  state the stores refuse by design, such as a definition whose template is gone, which a spec proving that the
+  stores ignore it writes in SQL, as it reads such a row.
 - **Nothing else touches the disk**, unless the behaviour under test is a file (a backup, a log, the front a server
   serves): the spec then works in a directory it creates under `os.tmpdir()` (`fs.mkdtempSync`) and removes when
   it is done, a file database included.
+- **A spec that exercises SQL runs on every engine**: the spec of a store, a migration, the schema or a transaction
+  is `describe.each(beyTestEngines())('<unit> (%s)', engine => ...)`, opens its database with `{ engine }`
+  (`beyCreateTestDatabase`, or `beyOpenTestDatabase` for one no migration has run on) and calls
+  `beyResetTestDatabase()` in `afterEach`. Without `BEY_TEST_MYSQL_URL` the list holds SQLite alone, so the specs of
+  routers and services, which run on SQLite, need nothing more.
+- **The MySQL battery runs by hand**, never in Jenkins nor in a script of `package.json`, so the pipeline stays on
+  SQLite: a throwaway `mysql:8.4` server started with `docker run` and its data on a `tmpfs`, then the specs with
+  `BEY_TEST_MYSQL_URL` naming it, `jest -t "(mysql)"` for the MySQL half alone and `--testTimeout=30000`, since the
+  first migrations of a spec file on MySQL take longer than the 5 seconds of Jest. The testing readme of the library
+  holds both commands; `docker rm -f` removes the server when it is done.
+- **A statement the driver refuses is asserted with `rejects.toHaveProperty('message')`**, never
+  `rejects.toThrow()`: the error of a driver is not always an `Error` of the realm of the spec file, and `toThrow`
+  does not recognise it then.
 - **A service is tested through its factory**, with real stores on that database and fakes only for what leaves
   the process or depends on time: a mail sender, an OAuth provider, the clock.
 - **No `jest.mock` of the modules of the repo**: a factory takes its dependencies, so the spec passes the one it

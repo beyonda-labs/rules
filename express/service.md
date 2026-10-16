@@ -9,7 +9,7 @@ and the stores.
   typed by a `<Thing>Service` interface, and `<Thing>ServiceDependencies` types what it receives. Both interfaces
   are contracts and live in `models/`. No class, no `new`, no `this`.
 - **Everything it uses arrives as a dependency**: stores, other services, the logger, the clock when a spec needs
-  to fix it. It never opens a connection, reads `process.env` nor imports a store to call it, so a spec builds it
+  to fix it. It never opens a database, reads `process.env` nor imports a store to call it, so a spec builds it
   with whatever it needs.
 - **No module-level state**: no `let` at the top of the file and no cache shared between instances. What must be
   remembered goes in a store.
@@ -26,8 +26,8 @@ and the stores.
   `update(id, {}, options)`, in the same transaction. A write of its own bookkeeping, such as linking a copy to its
   definition, goes without them, and a time the row holds as data (`deactivatedAt`, `lastLoginAt`) is not a stamp.
 - **Writes through several stores are one transaction**: `store.transaction(work)`, which every store on the same
-  connection joins. Inside it the service awaits only those stores: a file, a hash or a network call goes before
-  or after it.
+  database joins. Inside it the service awaits only those stores: a file, a hash, a scan or a network call goes
+  before or after it, since the transaction holds a connection of the database until it ends.
 - **It never writes text for a user**: what it produces for the screen is a translation key with its parameters,
   resolved by the front. A default the user sees, such as the name of a copy, comes from the front.
 - **Many rows are read with one call**, `findByIds` or `findAll`: never a `findById` inside a loop, and never a page

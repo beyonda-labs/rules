@@ -6,8 +6,12 @@ product and the demo of the Express library.
 ## Rules
 
 - **`src/index.ts` only starts the process**: it reads the environment, creates the logger, opens the database, runs
-  the migrations, seeds the reference data through the service that owns it, as the system, and listens. When a step
-  fails the process ends with a non-zero code; it never listens on an app that did not finish starting.
+  the migrations, seeds the reference data through the service that owns it, as the system, and listens, awaiting
+  every step. When a step fails the process ends with a non-zero code; it never listens on an app that did not finish
+  starting.
+- **The database is the persistence config of the app**: `beyOpenDatabase` opens the one the authentication config
+  carries, and which engine it is (a SQLite file or a MySQL server) and how to reach it come from the environment
+  `src/environment.ts` reads, like any other setting. Nothing else in the app depends on the engine.
 - **It listens through `beyStartServer`**, never `app.listen`: on `SIGTERM` or `SIGINT` the server stops taking
   connections, lets the requests in flight finish and then runs `onClose`, which closes the database and the logger,
   so `docker stop` ends the process cleanly instead of killing it.
@@ -54,20 +58,22 @@ product and the demo of the Express library.
 async function start(): Promise<void> {
     const environment = readEnvironment();
     const logger = beyCreateLogger(buildLoggerConfig(environment));
-    const database = beyOpenDatabase(environment.databasePath);
+    const { persistence } = buildAppConfig(environment).authentication;
+    const database = await beyOpenDatabase(persistence, { logger });
     const globalVariableStore = beyCreateEntityStore<GlobalVariable>(database, buildGlobalVariablesEntityConfig());
 
     await beyRunMigrations(database, {
         backupDirectory: environment.backupDirectory,
         entities: buildEntityConfigs(),
+        logger,
         migrations: MIGRATIONS
     });
-    beySeedAccounts(database, buildAppConfig(environment).authentication.persistence, message => logger.info(message));
+    await beySeedAccounts(database, persistence, message => logger.info(message));
     await beyRunAsSystem(() => createGlobalVariableService({ globalVariableStore }).seedSystemVariables());
     await beyStartServer(createApp({ database, environment, logger }), {
         logger,
         onClose: async () => {
-            database.close();
+            await database.close();
             await logger.close();
         },
         port: environment.port

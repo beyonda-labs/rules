@@ -32,9 +32,15 @@ front, that runs on any machine without being configured for it.
   inside the image for its system.
 - **A `node_modules` is never copied between machines**: `better-sqlite3`, `bcrypt` and any native module are built
   for one system and one version of Node.
+- **The database is SQLite in the `/data` volume unless the install chooses MySQL**: `DATABASE_TYPE=mysql` with the
+  `MYSQL_*` variables points the service at a MySQL 8.4 server, either the `mysql` profile of the compose, with its own
+  volume and no published port, or an external one. A MySQL install starts on an empty schema, keeps the attachment
+  content on disk (`ATTACHMENT_STORAGE=disk`, inside `/data`), and is backed up with the tools of MySQL: the copy the
+  service makes before a migration or a deletion exists on SQLite only. The engine is chosen once, at install.
 - **The compose lives in `docker/` of the service repo**: `compose.yaml` runs the image and is the only file a target
   needs, `compose.build.yaml` adds the build and its secret, and `.env.example` names what a machine may change
-  (`PORT`, `VERSION`, the admin, `TRUST_PROXY`, `FRONT_URL` and the mail account). The published port is the one
+  (`PORT`, `VERSION`, the admin, `TRUST_PROXY`, `FRONT_URL`, the mail account and the database), and a profile adds an
+  optional service (`antivirus`, `mysql`). The published port is the one
   [ports.md](ports.md) reserves.
 - **An image moves as a file**: `docker save <image> -o <image>.tar` on the machine that built it, `docker load` and
   `docker compose up -d` next to `compose.yaml` on the target.
