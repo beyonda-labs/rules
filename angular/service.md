@@ -14,7 +14,7 @@ Conventions to follow when creating or changing a service.
   rows to those three; the one that runs what the actions of a page do (open a form, send the request, navigate,
   build a confirmation) is `<thing>-actions.service.ts`, and the page component only wires it into its config.
 - **`@Injectable({ providedIn: 'root' })` by default**. A bare `@Injectable()` only when the service must hold
-  per-instance state and is listed in a component's `providers`.
+  per-instance state, or reads a service that does, and is listed in a component's `providers`.
 - **Dependencies with `inject()`**, in `private readonly` fields at the top of the class. Never through constructor
   parameters; a service with no state has no constructor at all.
 - **Order inside the class**: injected dependencies, private state and attributes, public state and attributes,
@@ -28,9 +28,10 @@ Conventions to follow when creating or changing a service.
   spec, so they live in the model file of the page or module, as [function-module.md](function-module.md) says of
   any contract. It does not re-export them either. A shape only the service reads, such as the raw answer it maps,
   stays at the top of the file, unexported.
-- **Whatever does not need `this` is a plain `function` below the class**, a no-op callback such as `ignoreError`
-  included: `perfectionist/sort-modules` puts the functions of a file after its class. Constants go at the top of
-  the file in `SCREAMING_SNAKE_CASE`; a `const` holds a value, never an arrow function.
+- **No helper functions below the class**: whatever does not need `this`, a no-op callback such as `ignoreError`
+  included, goes in a function module with its spec (`<module>/functions/`), as
+  [function-module.md](function-module.md) says, or in a small helper service when it needs injection. Constants go
+  at the top of the file in `SCREAMING_SNAKE_CASE`; a `const` holds a value, never an arrow function.
 - **A service that transforms data returns a new value** and never mutates its argument.
 - **No callbacks as properties**: what a component needs to trigger is a specific method on the service.
 - **An error reaches the user in the error modal, never in a toast**, whether a service or a component reports it.
