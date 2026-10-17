@@ -14,6 +14,9 @@ free name, checking the shape of a block.
   and no ambient context such as the entity scope of the request. Its caller reads the scope (`beyCurrentScope()`)
   and passes it in; the only function module that reads and sets a context is the one that owns it, with its
   `run*` functions.
+- **A function may wrap the `run*` of another module**: it sets the context only through that function and decides
+  from its arguments alone, the scope included (`runWithOwnerRows(config, scope, owner, work)` of base-entity calls
+  `runWithOwnerReadScope` of persistence, or runs `work` as it is).
 - **The file is named after what its functions do, without a technical suffix**: `template-item-actions.ts`,
   `available-name.ts`. No `.helper.ts` nor `.util.ts`; only the artefacts keep theirs (`.module.ts`, `.router.ts`,
   `.service.ts`, `.store.ts`, `.middleware.ts`, `.model.ts`).

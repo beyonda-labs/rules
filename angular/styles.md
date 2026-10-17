@@ -34,6 +34,10 @@ Bootstrap            base: reset, grid, utilities, components
 - **A module variable first declared on an element, not on `:host`, is private**: it lets a state or a variant
   swap one value (`--bey-tabs-tab-fg`) instead of repeating every declaration that reads it, and a consumer is not
   meant to set it.
+- **A size its own layout repeats goes into a private variable**: a dimension of the module that more than one
+  declaration reads (the width of a column and the offset that clears it) is declared once, as a private
+  `--bey-<module>-*` variable on the outermost element that encloses every one that reads it, and each declaration
+  reads the variable, never the literal again.
 - **Dark mode lives in the token layer.** A module declares `:host-context(body.dark)` only for what cannot be expressed as a token swap, such as `filter: invert(1)` on an image.
 - **Bootstrap first**: layout, spacing and typography utilities come from Bootstrap. A custom class exists only when Bootstrap does not cover the case or the style is semantic to the module.
 - **A class name is `bey-<module>-<part>[-<subpart>]`** and always sits in the static `class` attribute.
@@ -49,6 +53,8 @@ Bootstrap            base: reset, grid, utilities, components
 - **Rules follow the template.** `:host` and its custom properties open the file; then one block per element in the order the template renders them; the states (`is-*`, `has-*`) and variants (`bey-<module>--*`) of an element come right after its base rule; media queries and `:host-context` close the file. Rules are never sorted alphabetically: the cascade depends on their order, and reading them next to the template does too.
 - **Inside a block, custom properties come first and declarations are alphabetical**, with a shorthand before its longhands. Stylelint enforces and fixes it (`order/order`, `order/properties-alphabetical-order`), so nobody has to remember a grouping.
 - **No comments in a module's CSS**: whatever needs explaining goes in its README. Only the token layer may label its groups with a comment that mirrors the token catalogue, and a `stylelint-disable` stays only with its reason when a rule cannot be met.
+- **`bs-overrides.css` is not the token layer**: it hands the tokens to Bootstrap, so the comment rule holds for it
+  as for any other stylesheet, and what it needs explained goes in a readme.
 
 ## Example
 

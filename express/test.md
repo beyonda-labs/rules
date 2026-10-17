@@ -16,7 +16,7 @@ about any test.
   later request or a store read returns. Never the SQL a store runs, the calls between the functions of the repo or
   the private state of a factory. A spec reads a table itself only where no store can show the state: a change of
   the schema (a migration, `beyEnsureEntityTables` on an older database) or a row the stores hide by design, such as
-  a definition left without its template.
+  a definition left without its template. The driver specs below are the one place a spec asserts SQL.
 - **A router is tested over HTTP on the real app**: `beyStartTestServer(createApp(...))` listens on a free port and
   sends each request through `fetch` with a token for the given roles; the library mounts its module on an app as
   a consumer does. Its spec covers what a client observes: who may call each route, what it parses, every status
@@ -35,14 +35,29 @@ about any test.
   library (`beySeedEntityRows`, `<package>/testing`), never through SQL in a spec or a fixture. The one exception is a
   state the stores refuse by design, such as a definition whose template is gone, which a spec proving that the
   stores ignore it writes in SQL, as it reads such a row.
+- **A store is made to fail by closing its database**: `await database.close()` before the call, so every store on it
+  rejects as it would on a lost connection. Never a partial fake of a store, nor a spy that replaces one of its
+  methods.
 - **Nothing else touches the disk**, unless the behaviour under test is a file (a backup, a log, the front a server
   serves): the spec then works in a directory it creates under `os.tmpdir()` (`fs.mkdtempSync`) and removes when
   it is done, a file database included.
 - **A spec that exercises SQL runs on every engine**: the spec of a store, a migration, the schema or a transaction
-  is `describe.each(beyTestEngines())('<unit> (%s)', engine => ...)`, opens its database with `{ engine }`
-  (`beyCreateTestDatabase`, or `beyOpenTestDatabase` for one no migration has run on) and calls
-  `beyResetTestDatabase()` in `afterEach`. Without `BEY_TEST_MYSQL_URL` the list holds SQLite alone, so the specs of
-  routers and services, which run on SQLite, need nothing more.
+  is `describe.each(beyTestEngines())('<unit> (%s)', engine => ...)` and opens its database with `{ engine }`
+  (`beyCreateTestDatabase`, or `beyOpenTestDatabase` for one no migration has run on). Without `BEY_TEST_MYSQL_URL`
+  the list holds SQLite alone, so the specs of routers and services, which run on SQLite, need nothing more.
+- **A spec that opens a test database resets it in its `afterEach`**: `beyResetTestDatabase()` closes every database
+  `beyCreateTestDatabase` and `beyOpenTestDatabase` opened and drops the schema of MySQL, so neither a connection
+  nor a schema outlives the case, on any engine.
+- **A spec stays on SQLite alone when SQLite is what it tests**: the copy of the database file the runner takes
+  before a migration, or a database built by the statements earlier versions ran on SQLite (the schema snapshot of
+  `src/lib/internal/testing/`), which no MySQL install ever held. It opens its SQLite database itself and closes it
+  in `afterEach`.
+- **The driver specs read the SQL of MySQL without a server**: the specs of what turns the code into the SQL of one
+  engine (the dialect helpers, the schema of a table, the runner of the migrations, the MySQL branch of an adapter
+  or a migration) also run on `openCompiledMysqlDatabase()` of `src/lib/internal/testing/`, which compiles every
+  statement for MySQL and answers what the spec gives it, and assert the statements it compiled. The spec of the
+  connection replaces the driver with `jest.mock('mysql2')`. So the pipeline, on SQLite, still covers what only
+  MySQL is sent.
 - **The MySQL battery runs by hand**, never in Jenkins nor in a script of `package.json`, so the pipeline stays on
   SQLite: a throwaway `mysql:8.4` server started with `docker run` and its data on a `tmpfs`, then the specs with
   `BEY_TEST_MYSQL_URL` naming it, `jest -t "(mysql)"` for the MySQL half alone and `--testTimeout=30000`, since the

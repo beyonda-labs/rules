@@ -25,13 +25,29 @@ and the stores.
   service never hands the store a time instead. A change kept in another table marks the row it belongs to with
   `update(id, {}, options)`, in the same transaction. A write of its own bookkeeping, such as linking a copy to its
   definition, goes without them, and a time the row holds as data (`deactivatedAt`, `lastLoginAt`) is not a stamp.
+- **Moving, trashing and restoring stamp nothing**: they change where a row sits and whether it shows, not what it
+  holds, so they are the exceptions to the stamp. A transfer to another owner is not one: it stamps every row it
+  moves, as an edit does.
+- **An edit that changes nothing writes no audit entry**: when no field ends up different from the row it read (an
+  edit of a user with `fields: []`, a role or an organization saved as it was), the service records no event.
 - **Writes through several stores are one transaction**: `store.transaction(work)`, which every store on the same
   database joins. Inside it the service awaits only those stores: a file, a hash, a scan or a network call goes
   before or after it, since the transaction holds a connection of the database until it ends.
+- **The slow work of a transfer goes in the hook that runs before its transaction**: `preloadTransfer`, which the
+  library runs before it opens the transaction, and whose answer reaches `prepareTransfer` as `transfer.preloaded`.
+  `prepareTransfer` runs inside the transaction and only writes through the stores; nothing slow goes in it. The
+  content of a row the transaction creates, such as the file of a copied attachment, is still written inside it, as
+  an upload is: the content store follows the transaction of its row, so a rollback leaves no file behind.
 - **It never writes text for a user**: what it produces for the screen is a translation key with its parameters,
   resolved by the front. A default the user sees, such as the name of a copy, comes from the front.
 - **Many rows are read with one call**, `findByIds` or `findAll`: never a `findById` inside a loop, and never a page
-  of the maximum size to mean "all".
+  of the maximum size to mean "all". An export reads a capped page instead of `findAll`, as [store.md](store.md)
+  says.
+- **The client of an external service is a service**: `create<Thing>(config)` in
+  `services/<service>-<role>.service.ts` (`createClamdScanner` in `clamd-scanner.service.ts`, `createMailer` in
+  `mailer.service.ts`), typed by an interface in `models/` that names what it does (`AttachmentScanner`). The service
+  that calls it takes that interface as a dependency, so a spec hands it a fake or the test server of
+  `<package>/testing` (`beyStartTestClamd`).
 - **Whatever does not need the dependencies is a plain function**: of the same file, below the factory, when only
   this service uses it; in `functions/` when another file uses it or it deserves its own spec. The factory stays a
   list of its methods.

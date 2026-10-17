@@ -44,8 +44,10 @@ product and the demo of the Express library.
   them are declared in `buildAppConfig`.
 - **Named exports only**: no `export default`, so every import says what it takes.
 - **Node built-ins are imported with `node:`** (`node:fs`, `node:crypto`), in code and specs alike.
-- **`console` only in `src/index.ts`**, for a failure before the logger exists: everything else logs through the logger
-  it receives, as the error handler of the library does.
+- **An app never uses `console`**: everything logs through the logger it receives, as the error handler of the
+  library does. A line that must reach the standard output and never the log files, such as the credentials of the
+  superadmin the first start generates, goes through `beyWriteStdout` of the logger module of
+  the library, and a failure before the logger exists through `beyWriteStderr`.
 - **Development runs `tsx watch --env-file-if-exists=.env src/index.ts`** and production
   `node --env-file-if-exists=.env dist/index.js`. No nodemon, ts-node, dotenv nor start script of its own:
   base-config ships both scripts.
@@ -68,7 +70,7 @@ async function start(): Promise<void> {
         logger,
         migrations: MIGRATIONS
     });
-    await beySeedAccounts(database, persistence, message => logger.info(message));
+    await beySeedAccounts(database, persistence, message => beyWriteStdout(message));
     await beyRunAsSystem(() => createGlobalVariableService({ globalVariableStore }).seedSystemVariables());
     await beyStartServer(createApp({ database, environment, logger }), {
         logger,
@@ -81,7 +83,7 @@ async function start(): Promise<void> {
 }
 
 start().catch(error => {
-    console.error(error);
+    beyWriteStderr(error);
     process.exitCode = 1;
 });
 

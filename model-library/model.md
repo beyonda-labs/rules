@@ -20,6 +20,13 @@ back and storage.
 - **A function that behaves per type dispatches through a table**, `Record<ItemType, (item) => Result>`, never a
   `switch` nor `instanceof`: the compiler then demands an entry for every type, so a new type cannot be forgotten
   in one of them.
+- **A table where only some types differ is still complete**: `Record<Type, Fn | undefined>`, with an explicit
+  `undefined` for every type that has nothing to do, and the caller falls back on it
+  (`SUB_REFERENCE_RESOLVERS[variable.type]?.(variable, subReference, value)`). Never a `Partial<Record<...>>`, which
+  lets a new type go without its entry.
+- **A `switch` over an enum that is not a type enum is allowed**: the table rule is about the discriminant of a
+  family (`type`, `expectedType`). Over the members of another enum, such as the sub-references of a number
+  variable (`NumberVariableSubReference`), a `switch` with a `default` is fine.
 - **A type is told apart by a field, never by its class.** Every family has a discriminant (`type`,
   `expectedType`) that survives serialisation.
 - **JSON is turned back into instances by hydration functions**, which apply the defaults a field added later

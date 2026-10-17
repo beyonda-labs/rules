@@ -7,7 +7,18 @@ stores, models and functions behind them.
 
 - **One folder per resource** under `src/resources/<resource>/`, named as its path: `<resource>.module.ts`,
   `<resource>.router.ts`, `<resource>-entity-config.ts` when the library manages the entity, `models/` for its
-  contracts, `services/`, `stores/` and `functions/` for its stateless logic. Specs sit next to what they test.
+  contracts, `services/`, `stores/`, `middleware/` and `functions/` for its stateless logic. Specs sit next to what
+  they test.
+- **A middleware of its own goes in its `middleware/`**: `<resource>/middleware/<name>.middleware.ts`, a factory of
+  a middleware or of the guards built from one set of dependencies (`createReviewReadingGuards`), as
+  [library.md](library.md) describes a middleware, with its interfaces in `models/`. Guards only this resource
+  mounts are created in its module; guards another resource mounts too are created once in `app.ts` and handed to
+  both, as a shared store is.
+- **A guard may answer the request itself**: one that serves a caller another view of the row (the reviewer who
+  reads a template they cannot see) is mounted on the route of the resource before the route of the library, answers
+  with `response.json(...)` when its case applies and calls `next()` otherwise. It is named after what it does
+  (`answerReviewRow`, `grantReviewReading` for one that only widens the scope), not `require<What>`, since it
+  refuses nothing.
 - **`<resource>.module.ts` builds the resource**: `create<Resource>Module(dependencies)` creates its stores, its
   services and its router from what it receives, and returns the router `app.ts` mounts. A store only this
   resource uses is created here; one that several resources use is created in `app.ts` and passed in.
@@ -49,6 +60,7 @@ src/
 ├── resources/
 │   └── templates/
 │       ├── functions/template-item-actions.ts
+│       ├── middleware/review-reading.middleware.ts
 │       ├── models/template.model.ts
 │       ├── services/template.service.ts
 │       ├── stores/template-definition.store.ts

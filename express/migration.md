@@ -31,6 +31,10 @@ Conventions for changing the schema and the stored data of a database, in an Exp
   `database.db`, with `beySql(database)` for what the engines write their own way, as [store.md](store.md) says. A
   string that is unique or indexed takes an indexable type, as [store.md](store.md) says too. Only what neither
   covers branches on `database.type`.
+- **Every index is created with `ensureIndex`**: `beySchema(database).ensureIndex(table, name, columns, { isUnique })`
+  creates it only when the table lacks it and, on MySQL, checks first that every column is indexable. A migration
+  never builds one with the `createIndex` builder of Kysely. Moving an applied migration to `ensureIndex` is a rewrite
+  that keeps its effect, so the schema snapshot spec proves it, as the rule below says.
 - **An app keeps its migrations in `src/migrations/`**, one file per migration named `<number>-<change>.ts`
   (`002-template-definition-owner-index.ts`) exporting the function that applies it, and `migrations.ts` listing
   them in order as `{ name, up }`. The numbering is one sequence for the whole app, because a migration of one

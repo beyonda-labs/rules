@@ -19,17 +19,20 @@ of the engine.
   (`<thing>.adapter.ts`), and after where it stores it only when a store has more than one
   (`disk-attachment-content.adapter.ts`); a part an adapter splits out stays next to it, named after what it builds
   (`<thing>-search.ts`), and its row types go in `models/<thing>-row.model.ts`. Only what one engine alone runs keeps
-  its name (`internal/sqlite/`, with the `bey_fold` function of SQLite). The helpers the adapters of several modules
-  share (`escapeLike`, the row counts of an organization) live in `src/lib/internal/<topic>/`, as
-  [library.md](library.md) places what modules share, and a seeding function of the library (`beySeedAccounts`) sits
-  with the adapters of its module.
+  its name (`internal/sqlite/`, with the `bey_fold` function of SQLite). The helpers several adapters of one module
+  share sit next to them in its `stores/adapters/`, named after what they do (`search-order.ts` and `user-roles.ts`
+  of user-store, `entity-rows.ts` of base-entity). The helpers the adapters of several modules share (`escapeLike`,
+  the row counts of an organization) live in `src/lib/internal/<topic>/`, as [library.md](library.md) places what
+  modules share, and a seeding function of the library (`beySeedAccounts`) sits with the adapters of its module.
 - **A store is a factory that receives the database**: `create<Thing>Store(database)` returns an object typed by a
   `<Thing>Store` interface in `models/`. It never opens a database, never keeps one in a module variable and never
   ignores the one it is given.
 - **A query is built on `database.db` where it runs**: in the method, or by a function the factory declares once and
   the methods call (`() => database.db.selectFrom(...)`), since `database.db` answers the transaction open around
   the work and many queries depend on their arguments (an `IN` list, a visibility condition). Neither `database.db`
-  nor a builder is kept in a variable, and creating a store runs no SQL.
+  nor a builder is kept in a variable of the factory or of the module, and creating a store runs no SQL. A builder
+  held in a local variable while one call adds to it and runs it is fine (`let query = ...`, then
+  `query = query.limit(...)` when a page is asked for), since it starts from the `database.db` of that call.
 - **One database per app**, opened by `await beyOpenDatabase(persistence, { logger })` in `src/index.ts` and passed to
   every store, those of the library included: one connection on SQLite (WAL journal, foreign keys on), a pool on
   MySQL. Only the library imports the drivers; an app types the handle as `BeyDatabase` and its own tables with a
@@ -42,15 +45,21 @@ of the engine.
   caller reads `row['name'] as string`.
 - **A read names what it returns**: `findById`, `findByIds`, `findAll`, `exists`, `count<Thing>`. A read that needs
   every row is `findAll`, never a search with the maximum page size.
+- **An export reads a capped page, never `findAll`**: the search of the list, with its filters and its order, limited
+  to a maximum the module declares as a constant (`BEY_AUDIT_EXPORT_MAX_ROWS`), since what an export reads, such as
+  the audit trail, grows without bound.
 - **A write a user makes takes the write options last** (`update(id, changes, options)`) and stamps `updatedAt`
   and `updatedBy` from them in the same statement, never from a bare time it is handed, as
-  [service.md](service.md) says.
+  [service.md](service.md) says. A transfer of rows to another owner takes them too and stamps the rows it moves.
+  Moving rows between folders, trashing them and restoring them are the exceptions: they take no write options and
+  stamp nothing.
 - **A write that touches several rows or tables is one transaction** (`beyRunInTransaction(database, work)`) inside
   the store. When a service writes through several stores, it wraps them in `store.transaction(work)`, as
   [service.md](service.md) says, and the transaction of each store joins it. A transaction owns a connection until
   it ends and a transaction of another request waits for it, so the slow work goes before it starts: a hash, a scan,
-  the extraction of a file, a network call. A read that decides the write, where two requests at once could both
-  pass it, locks its rows with `lockForUpdate`.
+  the extraction of a file, a network call. That holds for a transfer too: its slow work goes in `preloadTransfer`,
+  the hook that runs before the transaction, never in `prepareTransfer`, as [service.md](service.md) says. A read
+  that decides the write, where two requests at once could both pass it, locks its rows with `lockForUpdate`.
 - **Values are always bound**: Kysely binds every value the builder receives, and a list goes through
   `where(column, 'in', ids)`, never joined into the SQL. Only text of the code goes through `sql.raw`.
 - **No `RETURNING`**, which MySQL lacks: a write that needs what the database filled in selects the row after it,

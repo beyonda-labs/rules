@@ -23,6 +23,10 @@ Conventions to follow when creating or changing a component.
   a published API stable, not to add ceremony inside a module.
 - **A type only the component file reads stays in it, unexported**: the shape of a rendered row, a drag state. A
   type another file imports, a child or a spec, lives in `models/`.
+- **No helper functions below the component class**: a plain function the component calls, even one only it uses,
+  goes in a function module with its spec (`<component>/functions/` or `<module>/functions/`), as
+  [function-module.md](function-module.md) says. Next to the class, the file keeps only the types and constants it
+  alone reads.
 - **A unique DOM id comes from the repo's id module** ([function-module.md](function-module.md)), never from a
   counter of the component, a `let` of its file or a `static` field.
 - **Derived state is a `computed()`**, local state a `signal()`. Never a setter input with a `_`-prefixed field, never an injected `ChangeDetectorRef`.

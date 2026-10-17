@@ -7,6 +7,9 @@ Conventions to follow when creating or changing a model class.
 - **One pair per entity**: the class and a `<Name>Parameters` interface with the shape its constructor accepts.
 - **A single constructor argument**, destructured and typed with that interface. Never loose parameters. When it
   expects no parameter, it does not default to an empty object.
+- **A config whose parameters are all optional defaults to `= {}`**:
+  `constructor({ path = '/audit', retentionDays = 365 }: AuditConfigParameters = {})`, so `new AuditConfig()` builds
+  the defaults and no caller writes `new AuditConfig({})`.
 - **Default values live in the constructor's destructuring**, not in the interface nor in the field
   declaration: `separator = '/'`, `isDisabled = false`.
 - **The interface states what is optional**; the class declares as required (no `?`) everything that has a
@@ -22,6 +25,9 @@ Conventions to follow when creating or changing a model class.
   (`includeTrash`). It applies to every field of a model file in every stack: a class, its `Parameters`, an
   options object, a request or response body. A value that happens to be a boolean, such as the default of a
   boolean variable, is not a flag.
+- **A boolean handed unchanged to a driver keeps the driver's name**, with no prefix (`rejectUnauthorized` of the
+  SSL options of MySQL), so the options read as the driver documents them. One the code reads, or renames on the way
+  (`isSecure`, handed to nodemailer as `secure`), takes the prefix of its kind.
 - **An event callback is prefixed with `on`** and typed inline: `onItemClick?: (id: number) => void`. It tells the
   consumer that something happened, returns nothing and is optional unless the component cannot work without it.
 - **A callback the component calls for a value is named after what it returns**, as a function would be:

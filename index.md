@@ -81,7 +81,7 @@ them from there through its `beyonda.config.json`.
 | Exact versions, no local link in a commit               | `bey-check-dependencies`           |
 | An app's production build inlines no critical CSS       | `bey-config check` (`inline-critical-css`) |
 | Express: no default export, `node:` imports             | ESLint (`eslint.express`)          |
-| Express: `process.env` only in `src/environment.ts`, `console` only in `src/index.ts` | ESLint (`eslint.express`) |
+| Express: `process.env` only in `src/environment.ts`, no `console` | ESLint (`eslint.express`) |
 | Express app: the database drivers and umzug only through the library | ESLint (`eslint.express`) |
 | What a `public-api.ts` exports                          | prose — not automatable            |
 | What a test asserts and what it does not                | prose                              |

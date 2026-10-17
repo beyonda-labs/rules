@@ -29,6 +29,20 @@ Conventions for the routes of an Express app or library, on Express 5.
 - **The body is parsed, never cast**: `beyParseBody(request, SCHEMA)` validates it against a schema of the library
   and returns it typed, or throws the validation error. Neither `request.body as X` nor
   `request.body['x'] as string` appears.
+- **A service validates the body when the check needs data**: when the schema depends on the row, or the answer for
+  a missing row or a forbidden action must come before the one for a wrong body, the route hands the service
+  `beyReadBody(request)`, which takes anything that is not an object as `{}`, and the service validates it with
+  `beyValidate(body, schema)` (`{ isPartial: true }` for an edit) once it has read the row.
+- **The lists of the entity routes are parsed by `requireIds` and `requireEntries`** of base-entity, from the body
+  `readBody` reads: `{ ids }` is a non-empty array of strings, and `{ items }` a non-empty array of `{ id, type }`
+  whose `type` is `item` or `category` (every entry is an `item`, and `type` is not read, where the entity has no
+  folders). A missing or malformed list throws the `RequiredFieldError` of `ids` or `items`, and `requireTargetId`
+  does the same for a `targetId` that is neither a string nor `null`.
+- **The actions a row offers are checked by the service that reads it**: on top of the permission guard of the
+  route, a service that works on rows it reads throws `BeyActionUnavailableError` for one whose actions, after
+  `filterItemActions`, lack the one asked for, as every route of the library entities does. A route on one item
+  whose service does not read the row checks it before its handler, with the guard `beyCreateItemActionGuard`
+  builds.
 - **Path parameters come typed from the path** (`request.params.id` on `'/:id'`), never cast nor read by index.
   Express infers them from the path only into a middleware generic in its own call, so every guard a route takes
   is one: `<P>(request: Request<P>, response, next) => unknown`, returned by a factory called in the route

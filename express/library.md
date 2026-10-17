@@ -51,13 +51,21 @@ services, stores, migrations, errors and tests.
 - **Published to the private registry** through `publishConfig.registry`, with `.npmrc` sending the scope there;
   every push to develop publishes a `<version>-develop.<build>.<sha>` snapshot.
 - **Every module has a `docs/<module>-readme.md`** in the order the component library uses: a paragraph on what it
-  does, `## Usage` with a minimal example, a `## <Name>` table for the dependencies of its factory and for each
-  exported config, then one section per topic a consumer needs and the types do not tell, named after it: who may
-  call it (`Access`), its routes and what they answer (`Routes`), its `Message keys`, its `Tables`, a behaviour
-  (`Deletion`). The change detail goes in `docs/change-log.md`.
+  does, `## Usage` with a minimal example, a `## <Name>` table for the dependencies of its factory and for the config
+  of the module, then one section per topic a consumer needs and the types do not tell, named after it: who may call
+  it (`Access`), its routes and what they answer (always `## Endpoints`, never `Routes`), its `Message keys`, its
+  `Tables`, a behaviour (`Deletion`). The change detail goes in `docs/change-log.md`.
+- **The table of a sub-config goes inside the section of its topic**: a config that one topic of the module reads,
+  such as `BeyAccountLockoutConfig` under the account lockout of authentication, has its table there, never in a
+  section of its own next to the config of the module. It goes under a `### <Name>` heading at the end of the
+  section, or right after the sentence that names the class when more of the section follows it
+  (`BeyEntityStatusConfig` in the status section of base-entity).
 - **A README names only exported API**: the prefixed names a consumer imports (`beyCreateGroupsModule`), never an
   internal function or store of the module, whose work it tells as what the consumer sees.
-- **A breaking change to an exported name is a major**, and the old name is not kept as an alias.
+- **A breaking change to an exported name is a major**, and the old name is not kept as an alias. A minor may add a
+  better name next to the old one, which then stays exported as a deprecated alias until the next major, and the
+  change-log says so. The alias is a `const` with a `/** @deprecated Use <new name>. */` comment, so editors flag
+  it: the one comment the code allows.
 
 ## Example
 
